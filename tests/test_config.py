@@ -102,13 +102,21 @@ def test_config_update():
         "legacy_conf": {"something": 1, "other": 2},
     }
     new = {
-        "downloads": {"folder": "", "use_service": False, "keep_artwork": True},
+        "downloads": {
+            "folder": "",
+            "use_service": False,
+            "keep_artwork": True,
+        },
         "qobuz": {"email": "", "password": ""},
         "tidal": {"email": "", "password": ""},
     }
     update_config(old, new)
     assert new == {
-        "downloads": {"folder": "some_path", "use_service": True, "keep_artwork": True},
+        "downloads": {
+            "folder": "some_path",
+            "use_service": True,
+            "keep_artwork": True,
+        },
         "qobuz": {"email": "asdf@gmail.com", "password": "test"},
         "tidal": {"email": "", "password": ""},
     }
@@ -144,7 +152,9 @@ def test_config_file_update():
 
 def test_sample_config_data_properties(sample_config_data):
     # Test the properties of ConfigData
-    assert sample_config_data.modified is False  # Ensure initial state is not modified
+    assert (
+        sample_config_data.modified is False
+    )  # Ensure initial state is not modified
 
 
 def test_sample_config_data_modification(sample_config_data):

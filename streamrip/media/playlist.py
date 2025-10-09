@@ -44,7 +44,9 @@ class PendingPlaylistTrack(Pending):
 
     async def resolve(self) -> Track | None:
         if self.db.downloaded(self.id):
-            logger.info(f"Track ({self.id}) already logged in database. Skipping.")
+            logger.info(
+                f"Track ({self.id}) already logged in database. Skipping."
+            )
             return None
         try:
             resp = await self.client.get_metadata(self.id, "track")
@@ -80,7 +82,9 @@ class PendingPlaylistTrack(Pending):
                 self.client.get_downloadable(self.id, quality),
             )
         except NonStreamableError as e:
-            logger.error(f"Error fetching download info for track {self.id}: {e}")
+            logger.error(
+                f"Error fetching download info for track {self.id}: {e}"
+            )
             self.db.set_failed(self.client.source, "track", self.id)
             return None
 
@@ -231,16 +235,24 @@ class PendingLastfmPlaylist(Pending):
                     status.update(s.text())
 
                 for title, artist in titles_artists:
-                    requests.append(self._make_query(f"{title} {artist}", s, callback))
-                results: list[tuple[str | None, bool]] = await asyncio.gather(*requests)
+                    requests.append(
+                        self._make_query(f"{title} {artist}", s, callback)
+                    )
+                results: list[tuple[str | None, bool]] = await asyncio.gather(
+                    *requests
+                )
         else:
 
             def callback():
                 pass
 
             for title, artist in titles_artists:
-                requests.append(self._make_query(f"{title} {artist}", s, callback))
-            results: list[tuple[str | None, bool]] = await asyncio.gather(*requests)
+                requests.append(
+                    self._make_query(f"{title} {artist}", s, callback)
+                )
+            results: list[tuple[str | None, bool]] = await asyncio.gather(
+                *requests
+            )
 
         parent = self.config.session.downloads.folder
         folder = os.path.join(parent, clean_filepath(playlist_title))
@@ -269,7 +281,9 @@ class PendingLastfmPlaylist(Pending):
                 ),
             )
 
-        return Playlist(playlist_title, self.config, self.client, pending_tracks)
+        return Playlist(
+            playlist_title, self.config, self.client, pending_tracks
+        )
 
     async def _make_query(
         self,
@@ -294,22 +308,30 @@ class PendingLastfmPlaylist(Pending):
             stack.callback(callback)
             pages = await self.client.search("track", query, limit=1)
             if len(pages) > 0:
-                logger.debug(f"Found result for {query} on {self.client.source}")
+                logger.debug(
+                    f"Found result for {query} on {self.client.source}"
+                )
                 search_status.found += 1
                 return (
-                    SearchResults.from_pages(self.client.source, "track", pages)
+                    SearchResults.from_pages(
+                        self.client.source, "track", pages
+                    )
                     .results[0]
                     .id
                 ), False
 
             if self.fallback_client is None:
-                logger.debug(f"No result found for {query} on {self.client.source}")
+                logger.debug(
+                    f"No result found for {query} on {self.client.source}"
+                )
                 search_status.failed += 1
                 return None, False
 
             pages = await self.fallback_client.search("track", query, limit=1)
             if len(pages) > 0:
-                logger.debug(f"Found result for {query} on {self.client.source}")
+                logger.debug(
+                    f"Found result for {query} on {self.client.source}"
+                )
                 search_status.found += 1
                 return (
                     SearchResults.from_pages(
@@ -321,7 +343,9 @@ class PendingLastfmPlaylist(Pending):
                     .id
                 ), True
 
-            logger.debug(f"No result found for {query} on {self.client.source}")
+            logger.debug(
+                f"No result found for {query} on {self.client.source}"
+            )
             search_status.failed += 1
         return None, True
 
@@ -351,7 +375,9 @@ class PendingLastfmPlaylist(Pending):
             info: list[tuple[str, str]] = []
             titles = title_tags.findall(page_text)  # [2:]
             for i in range(0, len(titles) - 1, 2):
-                info.append((html.unescape(titles[i]), html.unescape(titles[i + 1])))
+                info.append(
+                    (html.unescape(titles[i]), html.unescape(titles[i + 1]))
+                )
             return info
 
         async def fetch(session: aiohttp.ClientSession, url, **kwargs):
@@ -371,23 +397,31 @@ class PendingLastfmPlaylist(Pending):
 
             playlist_title: str = html.unescape(playlist_title_match.group(1))
 
-            title_artist_pairs: list[tuple[str, str]] = find_title_artist_pairs(page)
+            title_artist_pairs: list[tuple[str, str]] = (
+                find_title_artist_pairs(page)
+            )
 
             total_tracks_match = re_total_tracks.search(page)
             if total_tracks_match is None:
                 raise Exception("Error parsing lastfm page: %s", page)
             total_tracks = int(total_tracks_match.group(1))
 
-            remaining_tracks = total_tracks - 50  # already got 50 from 1st page
+            remaining_tracks = (
+                total_tracks - 50
+            )  # already got 50 from 1st page
             if remaining_tracks <= 0:
                 return playlist_title, title_artist_pairs
 
             last_page = (
-                1 + int(remaining_tracks // 50) + int(remaining_tracks % 50 != 0)
+                1
+                + int(remaining_tracks // 50)
+                + int(remaining_tracks % 50 != 0)
             )
             requests = []
             for page in range(2, last_page + 1):
-                requests.append(fetch(session, playlist_url, params={"page": page}))
+                requests.append(
+                    fetch(session, playlist_url, params={"page": page})
+                )
             results = await asyncio.gather(*requests)
 
         for page in results:

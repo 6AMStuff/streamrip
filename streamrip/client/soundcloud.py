@@ -40,7 +40,11 @@ class SoundcloudClient(Client):
             verify_ssl=self.global_config.session.downloads.verify_ssl
         )
         client_id, app_version = self.config.client_id, self.config.app_version
-        if not client_id or not app_version or not (await self._announce_success()):
+        if (
+            not client_id
+            or not app_version
+            or not (await self._announce_success())
+        ):
             client_id, app_version = await self._refresh_tokens()
             # update file and session configs and save to disk
             cf = self.global_config.file.soundcloud
@@ -84,7 +88,10 @@ class SoundcloudClient(Client):
         offset: int = 0,
     ) -> list[dict]:
         # TODO: implement pagination
-        assert media_type in ("track", "playlist"), f"Cannot search for {media_type}"
+        assert media_type in (
+            "track",
+            "playlist",
+        ), f"Cannot search for {media_type}"
         params = {
             "q": query,
             "facet": "genre",
@@ -93,14 +100,18 @@ class SoundcloudClient(Client):
             "offset": offset,
             "linked_partitioning": "1",
         }
-        resp, status = await self._api_request(f"search/{media_type}s", params=params)
+        resp, status = await self._api_request(
+            f"search/{media_type}s", params=params
+        )
         assert status == 200
         if media_type == "track":
             for item in resp["collection"]:
                 item["id"] = self._get_custom_id(item)
         return [resp]
 
-    async def get_downloadable(self, item_info: str, _) -> SoundcloudDownloadable:
+    async def get_downloadable(
+        self, item_info: str, _
+    ) -> SoundcloudDownloadable:
         # We have `get_metadata` overwrite the "id" field so that it contains
         # some extra information we need to download soundcloud tracks
 
@@ -118,7 +129,9 @@ class SoundcloudClient(Client):
             raise NonStreamableError(item_info)
 
         if download_info == self.ORIGINAL_DOWNLOAD:
-            resp_json, status = await self._api_request(f"tracks/{item_id}/download")
+            resp_json, status = await self._api_request(
+                f"tracks/{item_id}/download"
+            )
             assert status == 200
             return SoundcloudDownloadable(
                 self.session,
@@ -165,7 +178,9 @@ class SoundcloudClient(Client):
         assert status == 200
 
         unresolved_tracks = [
-            track["id"] for track in original_resp["tracks"] if "media" not in track
+            track["id"]
+            for track in original_resp["tracks"]
+            if "media" not in track
         ]
 
         if len(unresolved_tracks) == 0:
@@ -185,10 +200,14 @@ class SoundcloudClient(Client):
 
         assert all(status == 200 for _, status in responses)
 
-        remaining_tracks = list(itertools.chain(*[resp for resp, _ in responses]))
+        remaining_tracks = list(
+            itertools.chain(*[resp for resp, _ in responses])
+        )
 
         # Insert the new metadata into the original response
-        track_map: dict[str, dict] = {track["id"]: track for track in remaining_tracks}
+        track_map: dict[str, dict] = {
+            track["id"]: track for track in remaining_tracks
+        }
         for i, track in enumerate(original_resp["tracks"]):
             if "media" in track:  # track already has metadata
                 continue
@@ -228,7 +247,9 @@ class SoundcloudClient(Client):
         url = f"{BASE}/{path}"
         return await self._request(url, params=params, headers=headers)
 
-    async def _request(self, url, params=None, headers=None) -> tuple[dict, int]:
+    async def _request(
+        self, url, params=None, headers=None
+    ) -> tuple[dict, int]:
         c = self.config
         _params = {
             "client_id": c.client_id,
@@ -239,7 +260,9 @@ class SoundcloudClient(Client):
             _params.update(params)
 
         logger.debug(f"Requesting {url} with {_params=}, {headers=}")
-        async with self.session.get(url, params=_params, headers=headers) as resp:
+        async with self.session.get(
+            url, params=_params, headers=headers
+        ) as resp:
             return await resp.json(), resp.status
 
     async def _request_body(self, url, params=None, headers=None):
@@ -252,7 +275,9 @@ class SoundcloudClient(Client):
         if params is not None:
             _params.update(params)
 
-        async with self.session.get(url, params=_params, headers=headers) as resp:
+        async with self.session.get(
+            url, params=_params, headers=headers
+        ) as resp:
             return await resp.content.read(), resp.status
 
     async def _announce_success(self):
@@ -280,7 +305,9 @@ class SoundcloudClient(Client):
             page_text,
         )
         if app_version_match is None:
-            raise Exception("Could not find app version in %s" % client_id_url_match)
+            raise Exception(
+                "Could not find app version in %s" % client_id_url_match
+            )
         app_version = app_version_match.group(1)
 
         async with self.session.get(client_id_url) as resp:
@@ -290,7 +317,9 @@ class SoundcloudClient(Client):
         assert client_id_match is not None
         client_id = client_id_match.group(1)
 
-        logger.debug(f"Refreshed soundcloud tokens as {client_id=} {app_version=}")
+        logger.debug(
+            f"Refreshed soundcloud tokens as {client_id=} {app_version=}"
+        )
         return client_id, app_version
 
 

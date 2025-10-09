@@ -45,7 +45,9 @@ class Artist(Media):
     async def postprocess(self):
         pass
 
-    async def _resolve_then_download(self, filters: QobuzDiscographyFilterConfig):
+    async def _resolve_then_download(
+        self, filters: QobuzDiscographyFilterConfig
+    ):
         """Resolve all artist albums, then download.
 
         This is used if the repeat filter is turned on, since we need the titles
@@ -56,7 +58,9 @@ class Artist(Media):
         )
         resolved = [a for a in resolved_or_none if a is not None]
         filtered_albums = self._apply_filters(resolved, filters)
-        batches = self.batch([a.rip() for a in filtered_albums], RESOLVE_CHUNK_SIZE)
+        batches = self.batch(
+            [a.rip() for a in filtered_albums], RESOLVE_CHUNK_SIZE
+        )
         for batch in batches:
             await asyncio.gather(*batch)
 
@@ -68,7 +72,10 @@ class Artist(Media):
                 album is None
                 or (filters.extras and not self._extras(album))
                 or (filters.features and not self._features(album))
-                or (filters.non_studio_albums and not self._non_studio_albums(album))
+                or (
+                    filters.non_studio_albums
+                    and not self._non_studio_albums(album)
+                )
                 or (filters.non_remaster and not self._non_remaster(album))
             ):
                 return

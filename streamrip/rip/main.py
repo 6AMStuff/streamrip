@@ -6,7 +6,13 @@ import platform
 import aiofiles
 
 from .. import db
-from ..client import Client, DeezerClient, QobuzClient, SoundcloudClient, TidalClient
+from ..client import (
+    Client,
+    DeezerClient,
+    QobuzClient,
+    SoundcloudClient,
+    TidalClient,
+)
 from ..config import Config
 from ..console import console
 from ..media import (
@@ -121,7 +127,9 @@ class Main:
                     f"[red]Found invalid url [cyan]{urls[i]}[/cyan], skipping.",
                 )
                 continue
-            url_client_pairs.append((p, await self.get_logged_in_client(p.source)))
+            url_client_pairs.append(
+                (p, await self.get_logged_in_client(p.source))
+            )
 
         pendings = await asyncio.gather(
             *[
@@ -145,7 +153,9 @@ class Main:
                 await prompter.prompt_and_login()
                 prompter.save()
             else:
-                with console.status(f"[cyan]Logging into {source}", spinner="dots"):
+                with console.status(
+                    f"[cyan]Logging into {source}", spinner="dots"
+                ):
                     # Log into client using credentials from config
                     await client.login()
 
@@ -181,17 +191,25 @@ class Main:
                 f"Download completed with {failed_items} failed items out of {total_items} total items."
             )
 
-    async def search_interactive(self, source: str, media_type: str, query: str):
+    async def search_interactive(
+        self, source: str, media_type: str, query: str
+    ):
         client = await self.get_logged_in_client(source)
 
         with console.status(f"[bold]Searching {source}", spinner="dots"):
             pages = await client.search(media_type, query, limit=100)
             if len(pages) == 0:
-                console.print(f"[red]No search results found for query {query}")
+                console.print(
+                    f"[red]No search results found for query {query}"
+                )
                 return
-            search_results = SearchResults.from_pages(source, media_type, pages)
+            search_results = SearchResults.from_pages(
+                source, media_type, pages
+            )
 
-        if platform.system() == "Windows":  # simple term menu not supported for windows
+        if (
+            platform.system() == "Windows"
+        ):  # simple term menu not supported for windows
             from pick import pick
 
             choices = pick(
@@ -233,7 +251,9 @@ class Main:
                     [(source, item.media_type(), item.id) for item in choices],
                 )
 
-    async def search_take_first(self, source: str, media_type: str, query: str):
+    async def search_take_first(
+        self, source: str, media_type: str, query: str
+    ):
         client = await self.get_logged_in_client(source)
         with console.status(f"[bold]Searching {source}", spinner="dots"):
             pages = await client.search(media_type, query, limit=1)
@@ -248,7 +268,12 @@ class Main:
         await self.add_by_id(source, first.media_type(), first.id)
 
     async def search_output_file(
-        self, source: str, media_type: str, query: str, filepath: str, limit: int
+        self,
+        source: str,
+        media_type: str,
+        query: str,
+        filepath: str,
+        limit: int,
     ):
         client = await self.get_logged_in_client(source)
         with console.status(f"[bold]Searching {source}", spinner="dots"):
@@ -273,7 +298,9 @@ class Main:
         client = await self.get_logged_in_client(c.source)
 
         if len(c.fallback_source) > 0:
-            fallback_client = await self.get_logged_in_client(c.fallback_source)
+            fallback_client = await self.get_logged_in_client(
+                c.fallback_source
+            )
         else:
             fallback_client = None
 

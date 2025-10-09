@@ -106,7 +106,9 @@ class QobuzInterpreterURL(URL):
         url = self.match.group(0)
         possible_id = self.match.group(1)
         if possible_id.isdigit():
-            logger.debug("Found artist ID %s in interpreter url %s", possible_id, url)
+            logger.debug(
+                "Found artist ID %s in interpreter url %s", possible_id, url
+            )
             artist_id = possible_id
         else:
             artist_id = await self.extract_interpreter_url(url, client)
@@ -157,7 +159,9 @@ class DeezerDynamicURL(URL):
         db: Database,
     ) -> Pending:
         url = self.match.group(0)  # entire dynamic link
-        media_type, item_id = await self._extract_info_from_dynamic_link(url, client)
+        media_type, item_id = await self._extract_info_from_dynamic_link(
+            url, client
+        )
         if media_type == "track":
             return PendingSingle(item_id, client, config, db)
         elif media_type == "album":

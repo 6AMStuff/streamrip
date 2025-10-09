@@ -17,4 +17,6 @@ BLANK_CONFIG_PATH = os.path.join(os.path.dirname(__file__), "config.toml")
 DEFAULT_DOWNLOADS_FOLDER = os.path.join(HOME, "StreamripDownloads")
 DEFAULT_DOWNLOADS_DB_PATH = os.path.join(LOG_DIR, "downloads.db")
 DEFAULT_FAILED_DOWNLOADS_DB_PATH = os.path.join(LOG_DIR, "failed_downloads.db")
-DEFAULT_YOUTUBE_VIDEO_DOWNLOADS_FOLDER = os.path.join(DOWNLOADS_DIR, "YouTubeVideos")
+DEFAULT_YOUTUBE_VIDEO_DOWNLOADS_FOLDER = os.path.join(
+    DOWNLOADS_DIR, "YouTubeVideos"
+)

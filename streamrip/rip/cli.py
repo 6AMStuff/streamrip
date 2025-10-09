@@ -17,7 +17,12 @@ from rich.prompt import Confirm
 from rich.traceback import install
 
 from .. import __version__, db
-from ..config import DEFAULT_CONFIG_PATH, Config, OutdatedConfigError, set_user_defaults
+from ..config import (
+    DEFAULT_CONFIG_PATH,
+    Config,
+    OutdatedConfigError,
+    set_user_defaults,
+)
 from ..console import console
 from ..utils.ssl_utils import get_aiohttp_connector_kwargs
 from .main import Main
@@ -87,7 +92,15 @@ def coro(f):
 )
 @click.pass_context
 def rip(
-    ctx, config_path, folder, no_db, quality, codec, no_progress, no_ssl_verify, verbose
+    ctx,
+    config_path,
+    folder,
+    no_db,
+    quality,
+    codec,
+    no_progress,
+    no_ssl_verify,
+    verbose,
 ):
     """Streamrip: the all in one music downloader."""
     global logger
@@ -214,7 +227,9 @@ async def url(ctx, urls):
 @click.argument(
     "path",
     required=True,
-    type=click.Path(exists=True, readable=True, file_okay=True, dir_okay=False),
+    type=click.Path(
+        exists=True, readable=True, file_okay=True, dir_okay=False
+    ),
 )
 @click.pass_context
 @coro
@@ -241,7 +256,10 @@ async def file(ctx, path):
                         f"Detected json file. Loading [yellow]{len(items)}[/yellow] items"
                     )
                     await main.add_all_by_id(
-                        [(i["source"], i["media_type"], i["id"]) for i in items]
+                        [
+                            (i["source"], i["media_type"], i["id"])
+                            for i in items
+                        ]
                     )
                 else:
                     s = set(items)
@@ -386,7 +404,9 @@ def database_browse(ctx, table):
 @click.argument("query", required=True)
 @click.pass_context
 @coro
-async def search(ctx, first, output_file, num_results, source, media_type, query):
+async def search(
+    ctx, first, output_file, num_results, source, media_type, query
+):
     """Search for content using a specific source.
 
     Example:
@@ -448,7 +468,9 @@ async def id(ctx, source, media_type, id):
             await main.rip()
 
 
-async def latest_streamrip_version(verify_ssl: bool = True) -> tuple[str, str | None]:
+async def latest_streamrip_version(
+    verify_ssl: bool = True,
+) -> tuple[str, str | None]:
     """Get the latest streamrip version from PyPI and release notes from GitHub.
 
     Args:

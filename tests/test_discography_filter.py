@@ -100,7 +100,9 @@ def test_multiple_groups():
     album_b1 = create_album("Album B", False, 96, 24, id="b1")
     album_b2 = create_album("Album B (Live)", True, 44.1, 16, id="b2")
     album_c1 = create_album("Album C", False, None, None, id="c1")
-    result = Artist._filter_repeats([album_a1, album_a2, album_b1, album_b2, album_c1])
+    result = Artist._filter_repeats(
+        [album_a1, album_a2, album_b1, album_b2, album_c1]
+    )
     assert len(result) == 3
     winners = {a.meta.info.id for a in result}
     # expected winners: album a2, album b1, album c1

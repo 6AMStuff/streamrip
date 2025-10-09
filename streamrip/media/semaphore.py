@@ -7,7 +7,9 @@ _unlimited = nullcontext()
 _global_semaphore: None | tuple[int, asyncio.Semaphore] = None
 
 
-def global_download_semaphore(c: DownloadsConfig) -> asyncio.Semaphore | nullcontext:
+def global_download_semaphore(
+    c: DownloadsConfig,
+) -> asyncio.Semaphore | nullcontext:
     """A global semaphore that limit the number of total tracks being downloaded
     at once.
 
@@ -31,7 +33,10 @@ def global_download_semaphore(c: DownloadsConfig) -> asyncio.Semaphore | nullcon
         raise Exception(f"{max_connections = } too small")
 
     if _global_semaphore is None:
-        _global_semaphore = (max_connections, asyncio.Semaphore(max_connections))
+        _global_semaphore = (
+            max_connections,
+            asyncio.Semaphore(max_connections),
+        )
 
     assert (
         max_connections == _global_semaphore[0]

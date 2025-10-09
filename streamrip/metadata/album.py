@@ -69,7 +69,8 @@ class AlbumMetadata:
         none_str = "Unknown"
         info: dict[str, str | int | float] = {
             "albumartist": clean_filename(self.albumartist),
-            "albumcomposer": clean_filename(self.albumcomposer or "") or none_str,
+            "albumcomposer": clean_filename(self.albumcomposer or "")
+            or none_str,
             "bit_depth": self.info.bit_depth or none_str,
             "id": self.info.id,
             "sampling_rate": self.info.sampling_rate or none_str,
@@ -96,7 +97,9 @@ class AlbumMetadata:
         else:
             albumartist = typed(safe_get(resp, "artist", "name"), str)
 
-        albumcomposer = typed(safe_get(resp, "composer", "name", default=""), str)
+        albumcomposer = typed(
+            safe_get(resp, "composer", "name", default=""), str
+        )
         _label = resp.get("label")
         if isinstance(_label, dict):
             _label = _label["name"]
@@ -116,7 +119,9 @@ class AlbumMetadata:
         cover_urls = Covers.from_qobuz(resp)
 
         bit_depth = typed(resp.get("maximum_bit_depth", -1), int)
-        sampling_rate = typed(resp.get("maximum_sampling_rate", -1.0), int | float)
+        sampling_rate = typed(
+            resp.get("maximum_sampling_rate", -1.0), int | float
+        )
         quality = get_quality_id(bit_depth, sampling_rate)
         # Make sure it is non-empty list
         booklets = typed(resp.get("goodies", None) or None, list | None)
@@ -161,7 +166,9 @@ class AlbumMetadata:
     @classmethod
     def from_deezer(cls, resp: dict) -> AlbumMetadata | None:
         album = resp.get("title", "Unknown Album")
-        tracktotal = typed(resp.get("track_total", 0) or resp.get("nb_tracks", 0), int)
+        tracktotal = typed(
+            resp.get("track_total", 0) or resp.get("nb_tracks", 0), int
+        )
         disctotal = typed(resp["tracks"][-1]["disk_number"], int)
         genres = [typed(g["name"], str) for g in resp["genres"]["data"]]
 
@@ -174,7 +181,8 @@ class AlbumMetadata:
         label = resp.get("label")
         booklets = None
         explicit = typed(
-            resp.get("parental_warning", False) or resp.get("explicit_lyrics", False),
+            resp.get("parental_warning", False)
+            or resp.get("explicit_lyrics", False),
             bool,
         )
 
@@ -229,7 +237,9 @@ class AlbumMetadata:
         )
         genre = typed(track.get("genre"), str | None)
         genres = [genre] if genre is not None else []
-        artist = typed(safe_get(track, "publisher_metadata", "artist"), str | None)
+        artist = typed(
+            safe_get(track, "publisher_metadata", "artist"), str | None
+        )
         artist = artist or typed(track["user"]["username"], str)
         albumartist = artist
         date = typed(track.get("created_at"), str)
@@ -241,7 +251,9 @@ class AlbumMetadata:
             str | None,
         )
         album_title = album_title or "Unknown album"
-        copyright = typed(safe_get(track, "publisher_metadata", "p_line"), str | None)
+        copyright = typed(
+            safe_get(track, "publisher_metadata", "p_line"), str | None
+        )
         tracktotal = 1
         disctotal = 1
         quality = 0
@@ -306,7 +318,9 @@ class AlbumMetadata:
         artists = typed(resp.get("artists", []), list)
         albumartist = ", ".join(a["name"] for a in artists)
         if not albumartist:
-            albumartist = typed(safe_get(resp, "artist", "name", default=""), str)
+            albumartist = typed(
+                safe_get(resp, "artist", "name", default=""), str
+            )
 
         disctotal = typed(resp.get("numberOfVolumes", 1), int)
         # label not returned by API
@@ -368,7 +382,9 @@ class AlbumMetadata:
         )
 
     @classmethod
-    def from_tidal_playlist_track_resp(cls, resp: dict) -> AlbumMetadata | None:
+    def from_tidal_playlist_track_resp(
+        cls, resp: dict
+    ) -> AlbumMetadata | None:
         album_resp = resp["album"]
         streamable = resp.get("allowStreaming", False)
         if not streamable:
@@ -389,7 +405,10 @@ class AlbumMetadata:
         albumartist = ", ".join(a["name"] for a in artists)
         if not albumartist:
             albumartist = typed(
-                safe_get(resp, "artist", "name", default="Unknown Albumbartist"), str
+                safe_get(
+                    resp, "artist", "name", default="Unknown Albumbartist"
+                ),
+                str,
             )
 
         disctotal = typed(resp.get("volumeNumber", 1), int)
@@ -452,7 +471,9 @@ class AlbumMetadata:
         )
 
     @classmethod
-    def from_incomplete_deezer_track_resp(cls, resp: dict) -> AlbumMetadata | None:
+    def from_incomplete_deezer_track_resp(
+        cls, resp: dict
+    ) -> AlbumMetadata | None:
         album_resp = resp["album"]
         album_id = album_resp["id"]
         album = album_resp["title"]

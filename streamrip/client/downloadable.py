@@ -113,7 +113,9 @@ class BasicDownloadable(Downloadable):
         self.source: str = source or "Unknown"
 
     async def _download(self, path: str, callback):
-        await fast_async_download(path, self.url, self.session.headers, callback)
+        await fast_async_download(
+            path, self.url, self.session.headers, callback
+        )
 
 
 class DeezerDownloadable(Downloadable):
@@ -150,7 +152,9 @@ class DeezerDownloadable(Downloadable):
                     info = await resp.json()
                     try:
                         # Usually happens with deezloader downloads
-                        raise NonStreamableError(f"{info['error']} - {info['message']}")
+                        raise NonStreamableError(
+                            f"{info['error']} - {info['message']}"
+                        )
                     except KeyError:
                         raise NonStreamableError(info)
 
@@ -251,7 +255,9 @@ class TidalDownloadable(Downloadable):
             )
         self.url = url
         self.enc_key = encryption_key
-        self.downloadable = BasicDownloadable(session, url, self.extension, "tidal")
+        self.downloadable = BasicDownloadable(
+            session, url, self.extension, "tidal"
+        )
 
     async def _download(self, path: str, callback):
         await self.downloadable._download(path, callback)
@@ -372,7 +378,9 @@ class SoundcloudDownloadable(Downloadable):
         return await super().size()
 
 
-async def concat_audio_files(paths: list[str], out: str, ext: str, max_files_open=128):
+async def concat_audio_files(
+    paths: list[str], out: str, ext: str, max_files_open=128
+):
     """Concatenate audio files using FFmpeg. Batched by max files open.
 
     Recurses log_{max_file_open}(len(paths)) times.
@@ -416,7 +424,9 @@ async def concat_audio_files(paths: list[str], out: str, ext: str, max_files_ope
             "warning",
             outpaths[i],
         )
-        fut = asyncio.create_subprocess_exec(*command, stderr=asyncio.subprocess.PIPE)
+        fut = asyncio.create_subprocess_exec(
+            *command, stderr=asyncio.subprocess.PIPE
+        )
         proc_futures.append(fut)
 
     # Create all processes concurrently

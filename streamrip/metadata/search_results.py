@@ -210,7 +210,10 @@ class PlaylistSummary(Summary):
         id = item.get("id") or item.get("uuid") or "Unknown"
         name = item.get("name") or item.get("title") or "Unknown"
         creator = (
-            (item.get("publisher_metadata") and item["publisher_metadata"]["artist"])
+            (
+                item.get("publisher_metadata")
+                and item["publisher_metadata"]["artist"]
+            )
             or item.get("owner", {}).get("name")
             or item.get("user", {}).get("username")
             or item.get("user", {}).get("name")

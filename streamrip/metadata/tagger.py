@@ -226,7 +226,9 @@ class Container(Enum):
             audio.add(cover)
         elif self == Container.AAC:
             async with aiofiles.open(cover_path, "rb") as img:
-                cover = MP4Cover(await img.read(), imageformat=MP4Cover.FORMAT_JPEG)
+                cover = MP4Cover(
+                    await img.read(), imageformat=MP4Cover.FORMAT_JPEG
+                )
             audio["covr"] = [cover]
 
     def save_audio(self, audio, path):

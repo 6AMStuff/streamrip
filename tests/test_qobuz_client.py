@@ -38,7 +38,8 @@ def test_client_raises_missing_credentials():
 
 
 @pytest.mark.skipif(
-    "QOBUZ_EMAIL" not in os.environ, reason="Qobuz credentials not found in env."
+    "QOBUZ_EMAIL" not in os.environ,
+    reason="Qobuz credentials not found in env.",
 )
 def test_client_get_metadata(qobuz_client):
     meta = arun(qobuz_client.get_metadata("s9nzkwg2rh1nc", "album"))
@@ -48,7 +49,8 @@ def test_client_get_metadata(qobuz_client):
 
 
 @pytest.mark.skipif(
-    "QOBUZ_EMAIL" not in os.environ, reason="Qobuz credentials not found in env."
+    "QOBUZ_EMAIL" not in os.environ,
+    reason="Qobuz credentials not found in env.",
 )
 def test_client_get_downloadable(qobuz_client):
     d = arun(qobuz_client.get_downloadable("19512574", 3))
@@ -59,7 +61,8 @@ def test_client_get_downloadable(qobuz_client):
 
 
 @pytest.mark.skipif(
-    "QOBUZ_EMAIL" not in os.environ, reason="Qobuz credentials not found in env."
+    "QOBUZ_EMAIL" not in os.environ,
+    reason="Qobuz credentials not found in env.",
 )
 def test_client_search_limit(qobuz_client):
     res = qobuz_client.search("album", "rumours", limit=5)
@@ -70,7 +73,8 @@ def test_client_search_limit(qobuz_client):
 
 
 @pytest.mark.skipif(
-    "QOBUZ_EMAIL" not in os.environ, reason="Qobuz credentials not found in env."
+    "QOBUZ_EMAIL" not in os.environ,
+    reason="Qobuz credentials not found in env.",
 )
 def test_client_search_no_limit(qobuz_client):
     # Setting no limit has become impossible because `limit: int` now

@@ -81,13 +81,19 @@ def test_create_ssl_context_with_certifi(mock_ssl_context, mock_certifi):
     mock_certifi.where.assert_called_once()
 
     # Verify create_default_context was called with the certifi path
-    mock_ssl_context.assert_called_once_with(cafile=mock_certifi.where.return_value)
+    mock_ssl_context.assert_called_once_with(
+        cafile=mock_certifi.where.return_value
+    )
 
 
-def test_get_aiohttp_connector_kwargs_with_verification(mock_ssl_context, mock_certifi):
+def test_get_aiohttp_connector_kwargs_with_verification(
+    mock_ssl_context, mock_certifi
+):
     """Test get_aiohttp_connector_kwargs with verification enabled with certifi."""
     # Mock the create_ssl_context function to control its return value
-    with patch("streamrip.utils.ssl_utils.create_ssl_context") as mock_create_ctx:
+    with patch(
+        "streamrip.utils.ssl_utils.create_ssl_context"
+    ) as mock_create_ctx:
         mock_ssl_ctx = MagicMock()
         mock_create_ctx.return_value = mock_ssl_ctx
 
@@ -118,7 +124,9 @@ def test_client_get_session_supports_verify_ssl():
 
     # Skip rather than fail if option isn't implemented yet
     if not has_verify_ssl:
-        pytest.skip("verify_ssl parameter not implemented in Client.get_session yet")
+        pytest.skip(
+            "verify_ssl parameter not implemented in Client.get_session yet"
+        )
 
 
 @pytest.mark.asyncio
@@ -129,7 +137,9 @@ async def test_client_get_session_creates_connector():
 
     # Skip if verify_ssl is not in parameters
     if "verify_ssl" not in signature.parameters:
-        pytest.skip("verify_ssl parameter not implemented in Client.get_session yet")
+        pytest.skip(
+            "verify_ssl parameter not implemented in Client.get_session yet"
+        )
 
     # Patch the get_aiohttp_connector_kwargs function and the client session
     with (
@@ -179,7 +189,9 @@ async def test_latest_streamrip_version_creates_session():
 
     # Patch the get_aiohttp_connector_kwargs function and related modules
     with (
-        patch("streamrip.rip.cli.get_aiohttp_connector_kwargs") as mock_get_kwargs,
+        patch(
+            "streamrip.rip.cli.get_aiohttp_connector_kwargs"
+        ) as mock_get_kwargs,
         patch("aiohttp.ClientSession") as mock_client_session,
         patch("aiohttp.TCPConnector") as mock_connector,
     ):
@@ -303,7 +315,9 @@ async def test_client_uses_config_settings():
             client = TidalClient(mock_config)
 
             # Mock the session creation method
-            with patch.object(client, "get_session", AsyncMock()) as mock_get_session:
+            with patch.object(
+                client, "get_session", AsyncMock()
+            ) as mock_get_session:
                 await client.login()
 
                 # Check that get_session was called with verify_ssl=False
@@ -328,7 +342,9 @@ def test_cli_option_registered():
             has_no_ssl_verify = True
             break
 
-    assert has_no_ssl_verify, "CLI command should accept --no-ssl-verify option"
+    assert (
+        has_no_ssl_verify
+    ), "CLI command should accept --no-ssl-verify option"
 
 
 def test_error_handling_with_ssl_errors():

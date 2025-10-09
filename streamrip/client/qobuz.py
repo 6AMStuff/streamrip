@@ -76,7 +76,9 @@ class QobuzSpoofer:
         assert bundle_url_match is not None
         bundle_url = bundle_url_match.group(1)
 
-        async with self.session.get("https://play.qobuz.com" + bundle_url) as req:
+        async with self.session.get(
+            "https://play.qobuz.com" + bundle_url
+        ) as req:
             self.bundle = await req.text()
 
         match = re.search(self.app_id_regex, self.bundle)
@@ -198,14 +200,18 @@ class QobuzClient(Client):
         logger.debug("Login resp: %s", resp)
 
         if status == 401:
-            raise AuthenticationError(f"Invalid credentials from params {params}")
+            raise AuthenticationError(
+                f"Invalid credentials from params {params}"
+            )
         elif status == 400:
             raise InvalidAppIdError(f"Invalid app id from params {params}")
 
         logger.debug("Logged in to Qobuz")
 
         if not resp["user"]["credential"]["parameters"]:
-            raise IneligibleError("Free accounts are not eligible to download tracks.")
+            raise IneligibleError(
+                "Free accounts are not eligible to download tracks."
+            )
 
         uat = resp["user_auth_token"]
         self.session.headers.update({"X-User-Auth-Token": uat})
@@ -289,7 +295,9 @@ class QobuzClient(Client):
 
         return label_resp
 
-    async def search(self, media_type: str, query: str, limit: int = 500) -> list[dict]:
+    async def search(
+        self, media_type: str, query: str, limit: int = 500
+    ) -> list[dict]:
         if media_type not in ("artist", "album", "track", "playlist"):
             raise Exception(f"{media_type} not available for search on qobuz")
 
@@ -308,7 +316,9 @@ class QobuzClient(Client):
         epoint = "album/getFeatured"
         return await self._paginate(epoint, params, limit=limit)
 
-    async def get_user_favorites(self, media_type: str, limit: int = 500) -> list[dict]:
+    async def get_user_favorites(
+        self, media_type: str, limit: int = 500
+    ) -> list[dict]:
         assert media_type in ("track", "artist", "album")
         params = {"type": f"{media_type}s"}
         epoint = "favorite/getUserFavorites"
@@ -321,7 +331,9 @@ class QobuzClient(Client):
 
     async def get_downloadable(self, item: str, quality: int) -> Downloadable:
         assert self.secret is not None and self.logged_in and 1 <= quality <= 4
-        status, resp_json = await self._request_file_url(item, quality, self.secret)
+        status, resp_json = await self._request_file_url(
+            item, quality, self.secret
+        )
         assert status == 200
         stream_url = resp_json.get("url")
 
@@ -336,7 +348,10 @@ class QobuzClient(Client):
             raise NonStreamableError
 
         return BasicDownloadable(
-            self.session, stream_url, "flac" if quality > 1 else "mp3", source="qobuz"
+            self.session,
+            stream_url,
+            "flac" if quality > 1 else "mp3",
+            source="qobuz",
         )
 
     async def _paginate(
@@ -375,7 +390,9 @@ class QobuzClient(Client):
         limit = int(page.get(key, {}).get("limit", 500))
         offset = int(page.get(key, {}).get("offset", 0))
 
-        logger.debug("paginate: from response: limit=%d, offset=%d", limit, offset)
+        logger.debug(
+            "paginate: from response: limit=%d, offset=%d", limit, offset
+        )
         params.update({"limit": limit})
 
         pages = []
@@ -439,7 +456,9 @@ class QobuzClient(Client):
         }
         return await self._api_request("track/getFileUrl", params)
 
-    async def _api_request(self, epoint: str, params: dict) -> tuple[int, dict]:
+    async def _api_request(
+        self, epoint: str, params: dict
+    ) -> tuple[int, dict]:
         """Make a request to the API.
         returns: status code, json parsed response
         """

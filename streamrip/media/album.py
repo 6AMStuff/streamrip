@@ -41,7 +41,8 @@ class Album(Media):
                 logger.error(f"Error downloading track: {e}")
 
         results = await asyncio.gather(
-            *[_resolve_and_download(p) for p in self.tracks], return_exceptions=True
+            *[_resolve_and_download(p) for p in self.tracks],
+            return_exceptions=True,
         )
 
         for result in results:
@@ -112,7 +113,8 @@ class PendingAlbum(Pending):
             parent = os.path.join(parent, self.client.source.capitalize())
         formatter = config.filepaths.folder_format
         folder = clean_filepath(
-            meta.format_folder_path(formatter), config.filepaths.restrict_characters
+            meta.format_folder_path(formatter),
+            config.filepaths.restrict_characters,
         )
 
         return os.path.join(parent, folder)

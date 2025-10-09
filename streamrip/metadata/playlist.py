@@ -57,7 +57,9 @@ class PlaylistMetadata:
                 track,
             )
             if meta is None:
-                logger.error(f"Track {i+1} in playlist {name} not available for stream")
+                logger.error(
+                    f"Track {i+1} in playlist {name} not available for stream"
+                )
                 continue
             tracks.append(meta)
 
@@ -81,7 +83,9 @@ class PlaylistMetadata:
         """
         name = typed(resp["title"], str)
         tracks = [
-            TrackMetadata.from_soundcloud(AlbumMetadata.from_soundcloud(track), track)
+            TrackMetadata.from_soundcloud(
+                AlbumMetadata.from_soundcloud(track), track
+            )
             for track in resp["tracks"]
         ]
         return cls(name, tracks)
