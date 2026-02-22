@@ -1,8 +1,8 @@
 import logging
-import os
 from enum import Enum
 
 import aiofiles
+import anyio
 from mutagen import id3
 from mutagen.flac import FLAC, Picture
 from mutagen.id3 import (
@@ -208,7 +208,7 @@ class Container(Enum):
 
     async def embed_cover(self, audio, cover_path):
         if self == Container.FLAC:
-            size = os.path.getsize(cover_path)
+            size = (await anyio.Path(cover_path).stat()).st_size
             if size > FLAC_MAX_BLOCKSIZE:
                 raise Exception("Cover art too big for FLAC")
             cover = Picture()

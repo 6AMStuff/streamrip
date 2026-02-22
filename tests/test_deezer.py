@@ -1,9 +1,9 @@
 import os
-import pytest
 from unittest.mock import Mock, patch
+
+import pytest
 from util import arun
 
-from streamrip.client.downloadable import DeezerDownloadable
 from streamrip.client.deezer import DeezerClient
 from streamrip.config import Config
 from streamrip.exceptions import NonStreamableError
@@ -46,7 +46,7 @@ def mock_deezer_client():
 def test_deezer_fallback_logic_with_mock_data(mock_deezer_client):
     """Unit test: fallback logic works with mocked track data"""
     # Mock track info where FLAC is unavailable but MP3_320 is available
-    # quality_map: [(9, "MP3_128"), (3, "MP3_320"), (1, "FLAC")]
+    # quality_map: [(9, "MP3_128"), (3, "MP3_320"), (1, "FLAC")]  # noqa: ERA001
     # So FILESIZE_MP3_128 = quality 0, FILESIZE_MP3_320 = quality 1, FILESIZE_FLAC = quality 2
     mock_track_info = {
         "FILESIZE_FLAC": 0,  # FLAC unavailable (quality 2)
@@ -72,7 +72,7 @@ def test_deezer_fallback_logic_with_mock_data(mock_deezer_client):
 def test_deezer_no_fallback_when_quality_available(mock_deezer_client):
     """Unit test: no fallback when requested quality is available"""
     # Mock track info where FLAC is available
-    # quality_map: [(9, "MP3_128"), (3, "MP3_320"), (1, "FLAC")]
+    # quality_map: [(9, "MP3_128"), (3, "MP3_320"), (1, "FLAC")]  # noqa: ERA001
     mock_track_info = {
         "FILESIZE_FLAC": 25000000,  # FLAC available (quality 2)
         "FILESIZE_MP3_320": 5000000,  # MP3_320 available (quality 1)
@@ -95,7 +95,7 @@ def test_deezer_no_fallback_when_quality_available(mock_deezer_client):
 def test_deezer_fallback_to_lowest_available_quality(mock_deezer_client):
     """Unit test: fallback walks down quality list until finding available quality"""
     # Mock track info where only MP3_128 is available
-    # quality_map: [(9, "MP3_128"), (3, "MP3_320"), (1, "FLAC")]
+    # quality_map: [(9, "MP3_128"), (3, "MP3_320"), (1, "FLAC")]  # noqa: ERA001
     mock_track_info = {
         "FILESIZE_FLAC": 0,  # FLAC unavailable (quality 2)
         "FILESIZE_MP3_320": 0,  # MP3_320 unavailable (quality 1)
@@ -121,7 +121,7 @@ def test_deezer_no_fallback_when_disabled(mock_deezer_client):
     mock_deezer_client.config.lower_quality_if_not_available = False
 
     # Mock track info where FLAC is unavailable
-    # quality_map: [(9, "MP3_128"), (3, "MP3_320"), (1, "FLAC")]
+    # quality_map: [(9, "MP3_128"), (3, "MP3_320"), (1, "FLAC")]  # noqa: ERA001
     mock_track_info = {
         "FILESIZE_FLAC": 0,  # FLAC unavailable (quality 2)
         "FILESIZE_MP3_320": 5000000,  # MP3_320 available (quality 1)

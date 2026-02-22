@@ -17,7 +17,6 @@ from typing import Any, Callable, Optional
 import aiofiles
 import aiohttp
 import m3u8
-import requests
 from Cryptodome.Cipher import AES, Blowfish
 from Cryptodome.Util import Counter
 
@@ -47,19 +46,26 @@ async def fast_async_download(path, url, headers, callback):
     chunk_size: int = 2**17  # 131 KB
     counter = 0
     yield_every = 8  # 1 MB
-    with open(path, "wb") as file:  # noqa: ASYNC101
-        with requests.get(  # noqa: ASYNC100
+    async with aiohttp.ClientSession() as session:
+        async with session.get(
             url,
             headers=headers,
             allow_redirects=True,
-            stream=True,
         ) as resp:
-            for chunk in resp.iter_content(chunk_size=chunk_size):
-                file.write(chunk)
-                callback(len(chunk))
-                if counter % yield_every == 0:
-                    await asyncio.sleep(0)
-                counter += 1
+            resp.raise_for_status()
+
+            async with aiofiles.open(path, "wb") as file:
+                async for chunk in resp.content.iter_chunked(chunk_size):
+                    if not chunk:
+                        continue
+
+                    await file.write(chunk)
+                    callback(len(chunk))
+
+                    if counter % yield_every == 0:
+                        await asyncio.sleep(0)
+
+                    counter += 1
 
 
 @dataclass(slots=True)

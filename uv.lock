@@ -179,6 +179,20 @@ wheels = [
 ]
 
 [[package]]
+name = "anyio"
+version = "4.12.1"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "exceptiongroup", marker = "python_full_version < '3.11'" },
+    { name = "idna" },
+    { name = "typing-extensions", marker = "python_full_version < '3.13'" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/96/f0/5eb65b2bb0d09ac6776f2eb54adee6abe8228ea05b20a5ad0e4945de8aac/anyio-4.12.1.tar.gz", hash = "sha256:41cfcc3a4c85d3f05c932da7c26d0201ac36f72abd4435ba90d0464a3ffed703", size = 228685, upload-time = "2026-01-06T11:45:21.246Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/38/0e/27be9fdef66e72d64c0cdc3cc2823101b80585f8119b5c112c2e8f5f7dab/anyio-4.12.1-py3-none-any.whl", hash = "sha256:d405828884fc140aa80a3c667b8beed277f1dfedec42ba031bd6ac3db606ab6c", size = 113592, upload-time = "2026-01-06T11:45:19.497Z" },
+]
+
+[[package]]
 name = "appdirs"
 version = "1.4.4"
 source = { registry = "https://pypi.org/simple" }
@@ -1396,6 +1410,7 @@ dependencies = [
     { name = "aiofiles" },
     { name = "aiohttp" },
     { name = "aiolimiter" },
+    { name = "anyio" },
     { name = "appdirs" },
     { name = "click-help-colors" },
     { name = "deezer-py" },
@@ -1436,6 +1451,7 @@ requires-dist = [
     { name = "aiofiles", specifier = ">=0.7,<1" },
     { name = "aiohttp", specifier = ">=3.9,<4" },
     { name = "aiolimiter", specifier = ">=1.1.0,<2" },
+    { name = "anyio", specifier = ">=4.12.1" },
     { name = "appdirs", specifier = ">=1.4.4,<2" },
     { name = "certifi", marker = "extra == 'ssl'", specifier = ">=2025.1.31,<2026" },
     { name = "click-help-colors", specifier = ">=0.9.2,<1" },
