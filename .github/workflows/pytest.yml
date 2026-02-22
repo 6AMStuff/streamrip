@@ -1,4 +1,4 @@
-name: Python Poetry Test
+name: Python Test
 
 on:
   push:
@@ -18,23 +18,15 @@ jobs:
       name: Check out repository code
 
     - name: Set up Python
-      uses: actions/setup-python@v4
+      uses: actions/setup-python@v6
       with:
-        python-version: '3.10'  # Specify the Python version
-        
-    - name: Install and configure Poetry
-      uses: snok/install-poetry@v1
-      with:
-        version: 1.5.1
-        virtualenvs-create: false
-        virtualenvs-in-project: true
-        installer-parallel: true
+        python-version-file: "pyproject.toml"
 
-    - name: Install dependencies
-      run: poetry install
+    - name: Install uv
+      uses: astral-sh/setup-uv@v7
 
     - name: Run tests
-      run: poetry run pytest
+      run: uv run pytest
 
     - name: Success message
       if: success()
