@@ -121,9 +121,7 @@ class TestParseURL(unittest.TestCase):
 
 
 class TestDeezerDynamicURL(unittest.TestCase):
-    @patch(
-        "streamrip.rip.parse_url.DeezerDynamicURL._extract_info_from_dynamic_link"
-    )
+    @patch("streamrip.rip.parse_url.DeezerDynamicURL._extract_info_from_dynamic_link")
     def test_into_pending_album(self, mock_extract):
         """Test conversion of Deezer dynamic URL to a PendingAlbum."""
         import asyncio
@@ -142,9 +140,7 @@ class TestDeezerDynamicURL(unittest.TestCase):
             mock_db = AsyncMock()
 
             # Call into_pending
-            pending = await result.into_pending(
-                mock_client, mock_config, mock_db
-            )
+            pending = await result.into_pending(mock_client, mock_config, mock_db)
 
             # Verify the correct pending type was created
             self.assertEqual(pending.__class__.__name__, "PendingAlbum")

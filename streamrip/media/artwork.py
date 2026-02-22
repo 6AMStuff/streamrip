@@ -83,9 +83,7 @@ async def download_artwork(
         embed_dir = os.path.join(folder, "__artwork")
         os.makedirs(embed_dir, exist_ok=True)
         _artwork_tempdirs.add(embed_dir)
-        embed_cover_path = os.path.join(
-            embed_dir, f"cover{hash(embed_url)}.jpg"
-        )
+        embed_cover_path = os.path.join(embed_dir, f"cover{hash(embed_url)}.jpg")
         downloadables.append(
             BasicDownloadable(session, embed_url, "jpg").download(
                 embed_cover_path,

@@ -46,9 +46,7 @@ class Track(Media):
                 f"Track {self.meta.tracknumber}",
             ) as callback:
                 try:
-                    await self.downloadable.download(
-                        self.download_path, callback
-                    )
+                    await self.downloadable.download(self.download_path, callback)
                     retry = False
                 except Exception as e:
                     logger.error(
@@ -65,9 +63,7 @@ class Track(Media):
                 f"Track {self.meta.tracknumber} (retry)",
             ) as callback:
                 try:
-                    await self.downloadable.download(
-                        self.download_path, callback
-                    )
+                    await self.downloadable.download(self.download_path, callback)
                 except Exception as e:
                     logger.error(
                         f"Persistent error downloading track '{self.meta.title}', skipping: {e}"
@@ -136,9 +132,7 @@ class PendingTrack(Pending):
         try:
             resp = await self.client.get_metadata(self.id, "track")
         except NonStreamableError as e:
-            logger.error(
-                f"Track {self.id} not available for stream on {source}: {e}"
-            )
+            logger.error(f"Track {self.id} not available for stream on {source}: {e}")
             return None
 
         try:
@@ -148,9 +142,7 @@ class PendingTrack(Pending):
             return None
 
         if meta is None:
-            logger.error(
-                f"Track {self.id} not available for stream on {source}"
-            )
+            logger.error(f"Track {self.id} not available for stream on {source}")
             self.db.set_failed(source, "track", self.id)
             return None
 

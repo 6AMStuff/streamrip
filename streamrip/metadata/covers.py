@@ -1,6 +1,4 @@
-TIDAL_COVER_URL = (
-    "https://resources.tidal.com/images/{uuid}/{width}x{height}.jpg"
-)
+TIDAL_COVER_URL = "https://resources.tidal.com/images/{uuid}/{width}x{height}.jpg"
 
 
 class Covers:
@@ -81,9 +79,7 @@ class Covers:
     @classmethod
     def from_soundcloud(cls, resp):
         c = cls()
-        cover_url = (
-            resp["artwork_url"] or resp["user"].get("avatar_url")
-        ).replace(
+        cover_url = (resp["artwork_url"] or resp["user"].get("avatar_url")).replace(
             "large",
             "t500x500",
         )
@@ -97,12 +93,8 @@ class Covers:
             return None
 
         c = cls()
-        for size_name, dimension in zip(
-            cls.COVER_SIZES, (160, 320, 640, 1280)
-        ):
-            c.set_cover_url(
-                size_name, cls._get_tidal_cover_url(uuid, dimension)
-            )
+        for size_name, dimension in zip(cls.COVER_SIZES, (160, 320, 640, 1280)):
+            c.set_cover_url(size_name, cls._get_tidal_cover_url(uuid, dimension))
         return c
 
     def get_size(self, size: str) -> CoverEntry:

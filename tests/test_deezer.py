@@ -61,9 +61,7 @@ def test_deezer_fallback_logic_with_mock_data(mock_deezer_client):
 
     # Test fallback behavior
     with patch.object(mock_deezer_client, "get_session"):
-        downloadable = arun(
-            mock_deezer_client.get_downloadable("123", quality=2)
-        )
+        downloadable = arun(mock_deezer_client.get_downloadable("123", quality=2))
 
         # Should have fallen back to quality 1 (MP3_320) since FLAC is unavailable
         assert downloadable.quality == 1
@@ -84,9 +82,7 @@ def test_deezer_no_fallback_when_quality_available(mock_deezer_client):
     mock_deezer_client.client.get_track_url.return_value = "https://test.flac"
 
     with patch.object(mock_deezer_client, "get_session"):
-        downloadable = arun(
-            mock_deezer_client.get_downloadable("123", quality=2)
-        )
+        downloadable = arun(mock_deezer_client.get_downloadable("123", quality=2))
 
         # Should use requested quality 2 (FLAC)
         assert downloadable.quality == 2
@@ -107,9 +103,7 @@ def test_deezer_fallback_to_lowest_available_quality(mock_deezer_client):
     mock_deezer_client.client.get_track_url.return_value = "https://test.mp3"
 
     with patch.object(mock_deezer_client, "get_session"):
-        downloadable = arun(
-            mock_deezer_client.get_downloadable("123", quality=2)
-        )
+        downloadable = arun(mock_deezer_client.get_downloadable("123", quality=2))
 
         # Should have fallen back to quality 0 (MP3_128) since higher qualities unavailable
         assert downloadable.quality == 0
@@ -154,14 +148,12 @@ def test_deezer_fallback_actually_occurred(deezer_client):
 
     # Since we requested FLAC (quality=2) but it's not available,
     # we should have fallen back to the next available quality (1 = MP3_320)
-    assert (
-        downloadable.quality == 1
-    ), "Should have fallen back to MP3_320 when FLAC unavailable"
+    assert downloadable.quality == 1, (
+        "Should have fallen back to MP3_320 when FLAC unavailable"
+    )
     print("Fallback occurred: FLAC unavailable, fell back to MP3_320")
 
     # Verify the URL is actually accessible and working
     assert downloadable.url.startswith("https://")
     assert downloadable._size > 0, "Downloadable should have a valid file size"
-    assert (
-        downloadable.extension == "mp3"
-    ), "MP3_320 should have .mp3 extension"
+    assert downloadable.extension == "mp3", "MP3_320 should have .mp3 extension"

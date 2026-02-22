@@ -105,9 +105,7 @@ class TidalClient(Client):
             logger.debug("filtering eps")
             album_resp, ep_resp = await asyncio.gather(
                 self._api_request(f"{url}/albums"),
-                self._api_request(
-                    f"{url}/albums", params={"filter": "EPSANDSINGLES"}
-                ),
+                self._api_request(f"{url}/albums", params={"filter": "EPSANDSINGLES"}),
             )
 
             item["albums"] = album_resp["items"]
@@ -122,23 +120,18 @@ class TidalClient(Client):
                 # Use unsynced lyrics for MP3, synced for others (FLAC, OPUS, etc)
                 if (
                     self.global_config.session.conversion.enabled
-                    and self.global_config.session.conversion.codec.upper()
-                    == "MP3"
+                    and self.global_config.session.conversion.codec.upper() == "MP3"
                 ):
                     item["lyrics"] = resp.get("lyrics") or ""
                 else:
-                    item["lyrics"] = (
-                        resp.get("subtitles") or resp.get("lyrics") or ""
-                    )
+                    item["lyrics"] = resp.get("subtitles") or resp.get("lyrics") or ""
             except TypeError as e:
                 logger.warning(f"Failed to get lyrics for {item_id}: {e}")
 
         logger.debug(item)
         return item
 
-    async def search(
-        self, media_type: str, query: str, limit: int = 100
-    ) -> list[dict]:
+    async def search(self, media_type: str, query: str, limit: int = 100) -> list[dict]:
         """Search for a query.
 
         :param query:
@@ -170,9 +163,7 @@ class TidalClient(Client):
         )
         logger.debug(resp)
         try:
-            manifest = json.loads(
-                base64.b64decode(resp["manifest"]).decode("utf-8")
-            )
+            manifest = json.loads(base64.b64decode(resp["manifest"]).decode("utf-8"))
         except KeyError:
             raise Exception(resp["userMessage"])
         except JSONDecodeError:
@@ -210,9 +201,7 @@ class TidalClient(Client):
         resp = await self._api_request(
             f"videos/{video_id}/playbackinfopostpaywall", params=params
         )
-        manifest = json.loads(
-            base64.b64decode(resp["manifest"]).decode("utf-8")
-        )
+        manifest = json.loads(base64.b64decode(resp["manifest"]).decode("utf-8"))
         async with self.session.get(manifest["urls"][0]) as resp:
             available_urls = await resp.json()
         available_urls.encoding = "utf-8"
@@ -269,9 +258,7 @@ class TidalClient(Client):
             {"authorization": f"Bearer {self.config.access_token}"},
         )
 
-    async def _get_auth_status(
-        self, device_code
-    ) -> tuple[int, dict[str, int | str]]:
+    async def _get_auth_status(self, device_code) -> tuple[int, dict[str, int | str]]:
         """Check if the user has logged in inside the browser.
 
         returns (status, authentication info)
@@ -339,9 +326,7 @@ class TidalClient(Client):
 
     # ---------- API Request Utilities ---------------
 
-    async def _api_post(
-        self, url, data, auth: aiohttp.BasicAuth | None = None
-    ) -> dict:
+    async def _api_post(self, url, data, auth: aiohttp.BasicAuth | None = None) -> dict:
         """Post to the Tidal API. Status not checked!
 
         :param url:
@@ -352,9 +337,7 @@ class TidalClient(Client):
             async with self.session.post(url, data=data, auth=auth) as resp:
                 return await resp.json()
 
-    async def _api_request(
-        self, path: str, params=None, base: str = BASE
-    ) -> dict:
+    async def _api_request(self, path: str, params=None, base: str = BASE) -> dict:
         """Handle Tidal API requests.
 
         :param path:
@@ -369,9 +352,7 @@ class TidalClient(Client):
         params["limit"] = 100
 
         async with self.rate_limiter:
-            async with self.session.get(
-                f"{base}/{path}", params=params
-            ) as resp:
+            async with self.session.get(f"{base}/{path}", params=params) as resp:
                 if resp.status == 404:
                     logger.warning("TIDAL: track not found", resp)
                     raise NonStreamableError("TIDAL: Track not found")

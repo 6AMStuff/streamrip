@@ -35,9 +35,7 @@ class TrackMetadata:
     lyrics: str | None = ""
 
     @classmethod
-    def from_qobuz(
-        cls, album: AlbumMetadata, resp: dict
-    ) -> TrackMetadata | None:
+    def from_qobuz(cls, album: AlbumMetadata, resp: dict) -> TrackMetadata | None:
         title = typed(resp["title"].strip(), str)
         isrc = typed(resp["isrc"], str)
         streamable = typed(resp.get("streamable", False), bool)
@@ -65,9 +63,7 @@ class TrackMetadata:
         )
         track_id = str(resp["id"])
         bit_depth = typed(resp.get("maximum_bit_depth"), int | None)
-        sampling_rate = typed(
-            resp.get("maximum_sampling_rate"), int | float | None
-        )
+        sampling_rate = typed(resp.get("maximum_sampling_rate"), int | float | None)
         # Is the info included?
         explicit = False
 
@@ -125,9 +121,7 @@ class TrackMetadata:
         )
 
     @classmethod
-    def from_soundcloud(
-        cls, album: AlbumMetadata, resp: dict
-    ) -> TrackMetadata:
+    def from_soundcloud(cls, album: AlbumMetadata, resp: dict) -> TrackMetadata:
         track = resp
         track_id = track["id"]
         isrc = typed(safe_get(track, "publisher_metadata", "isrc"), str | None)
@@ -224,9 +218,7 @@ class TrackMetadata:
         )
 
     @classmethod
-    def from_resp(
-        cls, album: AlbumMetadata, source, resp
-    ) -> TrackMetadata | None:
+    def from_resp(cls, album: AlbumMetadata, source, resp) -> TrackMetadata | None:
         if source == "qobuz":
             return cls.from_qobuz(album, resp)
         if source == "tidal":

@@ -227,9 +227,7 @@ async def url(ctx, urls):
 @click.argument(
     "path",
     required=True,
-    type=click.Path(
-        exists=True, readable=True, file_okay=True, dir_okay=False
-    ),
+    type=click.Path(exists=True, readable=True, file_okay=True, dir_okay=False),
 )
 @click.pass_context
 @coro
@@ -256,16 +254,13 @@ async def file(ctx, path):
                         f"Detected json file. Loading [yellow]{len(items)}[/yellow] items"
                     )
                     await main.add_all_by_id(
-                        [
-                            (i["source"], i["media_type"], i["id"])
-                            for i in items
-                        ]
+                        [(i["source"], i["media_type"], i["id"]) for i in items]
                     )
                 else:
                     s = set(items)
                     if len(s) < len(items):
                         console.print(
-                            f"Found [orange]{len(items)-len(s)}[/orange] repeated URLs!"
+                            f"Found [orange]{len(items) - len(s)}[/orange] repeated URLs!"
                         )
                         items = list(s)
                     console.print(
@@ -404,9 +399,7 @@ def database_browse(ctx, table):
 @click.argument("query", required=True)
 @click.pass_context
 @coro
-async def search(
-    ctx, first, output_file, num_results, source, media_type, query
-):
+async def search(ctx, first, output_file, num_results, source, media_type, query):
     """Search for content using a specific source.
 
     Example:

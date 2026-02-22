@@ -328,22 +328,16 @@ class ConfigData:
         update_toml_section_from_config(self.toml["qobuz"], self.qobuz)
         update_toml_section_from_config(self.toml["tidal"], self.tidal)
         update_toml_section_from_config(self.toml["deezer"], self.deezer)
-        update_toml_section_from_config(
-            self.toml["soundcloud"], self.soundcloud
-        )
+        update_toml_section_from_config(self.toml["soundcloud"], self.soundcloud)
         update_toml_section_from_config(self.toml["youtube"], self.youtube)
         update_toml_section_from_config(self.toml["lastfm"], self.lastfm)
         update_toml_section_from_config(self.toml["artwork"], self.artwork)
         update_toml_section_from_config(self.toml["filepaths"], self.filepaths)
         update_toml_section_from_config(self.toml["metadata"], self.metadata)
-        update_toml_section_from_config(
-            self.toml["qobuz_filters"], self.qobuz_filters
-        )
+        update_toml_section_from_config(self.toml["qobuz_filters"], self.qobuz_filters)
         update_toml_section_from_config(self.toml["cli"], self.cli)
         update_toml_section_from_config(self.toml["database"], self.database)
-        update_toml_section_from_config(
-            self.toml["conversion"], self.conversion
-        )
+        update_toml_section_from_config(self.toml["conversion"], self.conversion)
 
     def get_source(
         self,
@@ -444,9 +438,7 @@ def _get_dict_keys_r(d: dict) -> set[tuple]:
     for cur in keys:
         val = d[cur]
         if isinstance(val, dict):
-            ret.update(
-                (cur, *remaining) for remaining in _get_dict_keys_r(val)
-            )
+            ret.update((cur, *remaining) for remaining in _get_dict_keys_r(val))
         else:
             ret.add((cur,))
     return ret

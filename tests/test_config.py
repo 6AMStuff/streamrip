@@ -152,9 +152,7 @@ def test_config_file_update():
 
 def test_sample_config_data_properties(sample_config_data):
     # Test the properties of ConfigData
-    assert (
-        sample_config_data.modified is False
-    )  # Ensure initial state is not modified
+    assert sample_config_data.modified is False  # Ensure initial state is not modified
 
 
 def test_sample_config_data_modification(sample_config_data):

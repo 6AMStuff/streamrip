@@ -210,10 +210,7 @@ class PlaylistSummary(Summary):
         id = item.get("id") or item.get("uuid") or "Unknown"
         name = item.get("name") or item.get("title") or "Unknown"
         creator = (
-            (
-                item.get("publisher_metadata")
-                and item["publisher_metadata"]["artist"]
-            )
+            (item.get("publisher_metadata") and item["publisher_metadata"]["artist"])
             or item.get("owner", {}).get("name")
             or item.get("user", {}).get("username")
             or item.get("user", {}).get("name")
@@ -271,7 +268,7 @@ class SearchResults:
         return cls(results)
 
     def summaries(self) -> list[str]:
-        return [f"{i+1}. {r.summarize()}" for i, r in enumerate(self.results)]
+        return [f"{i + 1}. {r.summarize()}" for i, r in enumerate(self.results)]
 
     def get_choices(self, inds: tuple[int, ...] | int):
         if isinstance(inds, int):

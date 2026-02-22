@@ -12,7 +12,9 @@ from .downloadable import Downloadable
 
 logger = logging.getLogger("streamrip")
 
-DEFAULT_USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:83.0) Gecko/20100101 Firefox/83.0"
+DEFAULT_USER_AGENT = (
+    "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:83.0) Gecko/20100101 Firefox/83.0"
+)
 
 
 class Client(ABC):
@@ -30,9 +32,7 @@ class Client(ABC):
         raise NotImplementedError
 
     @abstractmethod
-    async def search(
-        self, media_type: str, query: str, limit: int = 500
-    ) -> list[dict]:
+    async def search(self, media_type: str, query: str, limit: int = 500) -> list[dict]:
         raise NotImplementedError
 
     @abstractmethod

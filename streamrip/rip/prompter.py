@@ -72,9 +72,7 @@ class QobuzPrompter(CredentialPrompter):
 
     def _prompt_creds_and_set_session_config(self):
         email = Prompt.ask("Enter your Qobuz email")
-        pwd_input = Prompt.ask(
-            "Enter your Qobuz password (invisible)", password=True
-        )
+        pwd_input = Prompt.ask("Enter your Qobuz password (invisible)", password=True)
 
         pwd = hashlib.md5(pwd_input.encode("utf-8")).hexdigest()
         console.print(

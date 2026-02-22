@@ -114,25 +114,19 @@ class DeezerClient(Client):
         artist["albums"] = albums["data"]
         return artist
 
-    async def search(
-        self, media_type: str, query: str, limit: int = 200
-    ) -> list[dict]:
+    async def search(self, media_type: str, query: str, limit: int = 200) -> list[dict]:
         # TODO: use limit parameter
         if media_type == "featured":
             try:
                 if query:
-                    search_function = getattr(
-                        self.client.api, f"get_editorial_{query}"
-                    )
+                    search_function = getattr(self.client.api, f"get_editorial_{query}")
                 else:
                     search_function = self.client.api.get_editorial_releases
             except AttributeError:
                 raise Exception(f'Invalid editorical selection "{query}"')
         else:
             try:
-                search_function = getattr(
-                    self.client.api, f"search_{media_type}"
-                )
+                search_function = getattr(self.client.api, f"search_{media_type}")
             except AttributeError:
                 raise Exception(f"Invalid media type {media_type}")
 
@@ -164,8 +158,7 @@ class DeezerClient(Client):
             (1, "FLAC"),  # quality 2
         ]
         size_map = [
-            int(track_info.get(f"FILESIZE_{format}", 0))
-            for _, format in quality_map
+            int(track_info.get(f"FILESIZE_{format}", 0)) for _, format in quality_map
         ]
         dl_info["quality_to_size"] = size_map
 
@@ -203,9 +196,7 @@ class DeezerClient(Client):
             )
         except deezer.WrongGeolocation:
             if not is_retry and fallback_id:
-                return await self.get_downloadable(
-                    fallback_id, quality, is_retry=True
-                )
+                return await self.get_downloadable(fallback_id, quality, is_retry=True)
             raise NonStreamableError(
                 "The requested track is not available. This may be due to your country/location.",
             )
