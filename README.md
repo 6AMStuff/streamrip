@@ -1,7 +1,6 @@
 ![streamrip logo](https://github.com/nathom/streamrip/blob/dev/demo/logo.svg?raw=true)
 
 [![Downloads](https://pepy.tech/badge/streamrip)](https://pepy.tech/project/streamrip)
-[![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/python/black)
 
 A scriptable stream downloader for Qobuz, Tidal, Deezer and SoundCloud.
 
