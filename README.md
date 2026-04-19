@@ -23,13 +23,7 @@ A scriptable stream downloader for Qobuz, Tidal, Deezer and SoundCloud.
 First, ensure [Python](https://www.python.org/downloads/) (version 3.10 or greater) and [pip](https://pip.pypa.io/en/stable/installing/) are installed. Then install `ffmpeg`. You may choose not to install this, but some functionality will be limited.
 
 ```bash
-pip3 install streamrip --upgrade
-```
-
-If you run into issues, try installing directly from the `dev` branch:
-
-```bash
-pip3 install git+https://github.com/nathom/streamrip.git@dev
+pip3 install git+https://github.com/itisFarzin/streamrip.git@dev
 ```
 
 When you type
@@ -62,7 +56,7 @@ If you want to get access to the latest and greatest features without waiting fo
 from the `dev` branch with the following command
 
 ```bash
-pip3 install git+https://github.com/nathom/streamrip.git@dev
+pip3 install git+https://github.com/itisFarzin/streamrip.git@dev
 ```
 
 ## Example Usage
