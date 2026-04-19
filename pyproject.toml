@@ -29,7 +29,6 @@ dependencies = [
   "m3u8>=0.9.0,<1",
   "aiofiles>=0.7,<1",
   "aiohttp>=3.9,<4",
-  "aiodns>=3.0.0,<4",
   "aiolimiter>=1.1.0,<2",
   "pytest-mock>=3.11.1,<4",
   "pytest-asyncio>=0.21.1,<1",
