@@ -289,7 +289,10 @@ class QobuzClient(Client):
 
         return label_resp
 
-    async def search(self, media_type: str, query: str, limit: int = 500) -> list[dict]:
+    async def search(
+        self, media_type: str, query: str, limit: int = 0, offset: int = 500
+    ) -> list[dict]:
+        # TODO: Add support for offset
         if media_type not in ("artist", "album", "track", "playlist"):
             raise Exception(f"{media_type} not available for search on qobuz")
 

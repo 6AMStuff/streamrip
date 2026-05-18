@@ -114,7 +114,9 @@ class DeezerClient(Client):
         artist["albums"] = albums["data"]
         return artist
 
-    async def search(self, media_type: str, query: str, limit: int = 200) -> list[dict]:
+    async def search(
+        self, media_type: str, query: str, limit: int = 200, offset: int = 0
+    ) -> list[dict]:
         # TODO: use limit parameter
         if media_type == "featured":
             try:
@@ -130,7 +132,7 @@ class DeezerClient(Client):
             except AttributeError:
                 raise Exception(f"Invalid media type {media_type}")
 
-        response = search_function(query, limit=limit)  # type: ignore
+        response = search_function(query, index=offset, limit=limit)  # type: ignore
         if response["total"] > 0:
             return [response]
         return []

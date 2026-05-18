@@ -131,7 +131,10 @@ class TidalClient(Client):
         logger.debug(item)
         return item
 
-    async def search(self, media_type: str, query: str, limit: int = 100) -> list[dict]:
+    async def search(
+        self, media_type: str, query: str, limit: int = 100, offset: int = 0
+    ) -> list[dict]:
+        # TODO: Add support for offset
         """Search for a query.
 
         :param query:
