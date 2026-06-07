@@ -1,6 +1,6 @@
 [project]
 name = "streamrip"
-version = "2.3.1"
+version = "2.3.2"
 description = "A fast, all-in-one music downloader for Qobuz, Deezer, Tidal, and SoundCloud"
 readme = "README.md"
 license = { text = "GPL-3.0-only" }
