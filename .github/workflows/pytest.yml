@@ -5,10 +5,20 @@ on:
     branches:
       - main
       - dev
+    paths:
+      - "**.py"
+      - "pyproject.toml"
+      - "uv.lock"
+      - ".github/workflows/pytest.yml"
   pull_request:
     branches:
       - main
       - dev
+    paths:
+      - "**.py"
+      - "pyproject.toml"
+      - "uv.lock"
+      - ".github/workflows/pytest.yml"
 
 jobs:
   test:
