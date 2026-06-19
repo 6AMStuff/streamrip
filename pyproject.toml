@@ -30,8 +30,6 @@ dependencies = [
   "aiofiles>=0.7",
   "aiohttp>=3.9",
   "aiolimiter>=1.1.0",
-  "pytest-mock>=3.11.1",
-  "pytest-asyncio>=0.21.1",
   "rich>=13.6.0",
   "click-help-colors>=0.9.2",
   "anyio>=4.12.1",
@@ -40,16 +38,6 @@ dependencies = [
 
 [project.optional-dependencies]
 ssl = ["certifi>=2025.1.31"]
-
-[project.scripts]
-rip = "streamrip.rip:rip"
-
-[project.urls]
-Homepage = "https://github.com/nathom/streamrip"
-Repository = "https://github.com/nathom/streamrip"
-"Bug Reports" = "https://github.com/nathom/streamrip/issues"
-
-[dependency-groups]
 dev = [
   "types-click>=7.1.2",
   "types-Pillow>=8.3.1",
@@ -58,7 +46,17 @@ dev = [
   "flake8>=3.9.2",
   "setuptools>=67.4.0",
   "pytest>=7.4",
+  "pytest-mock>=3.11.1",
+  "pytest-asyncio>=0.21.1",
 ]
+
+[project.scripts]
+rip = "streamrip.rip:rip"
+
+[project.urls]
+Homepage = "https://github.com/nathom/streamrip"
+Repository = "https://github.com/nathom/streamrip"
+"Bug Reports" = "https://github.com/nathom/streamrip/issues"
 
 [build-system]
 requires = ["hatchling"]
