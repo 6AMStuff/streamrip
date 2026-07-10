@@ -24,7 +24,7 @@ jobs:
   test:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v6.0.3
+    - uses: actions/checkout@v7.0.0
       name: Check out repository code
 
     - name: Set up Python
@@ -33,7 +33,7 @@ jobs:
         python-version-file: "pyproject.toml"
 
     - name: Install uv
-      uses: astral-sh/setup-uv@v7
+      uses: astral-sh/setup-uv@v8.2.0
 
     - name: Run tests
       run: uv run --extra dev pytest
