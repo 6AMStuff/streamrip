@@ -43,6 +43,53 @@ QOBUZ_FEATURED_KEYS = {
     "universal-chanson",
 }
 
+# Params whose values must never be written to the logs
+SENSITIVE_PARAMS = frozenset(
+    {
+        "user_auth_token",
+        "password",
+        "token",
+        "secret",
+        "app_secret",
+    }
+)
+
+
+def mask_secret(value: str) -> str:
+    """Redact a secret, revealing only its length.
+
+    :param value: the secret to redact
+    """
+    return "*" * len(value)
+
+
+def redact_params(params: dict) -> dict:
+    """Return a copy of `params` with sensitive values redacted.
+
+    Nested dicts and lists are redacted recursively. Keys that are missing
+    or that hold a non-string value are left untouched, so this is safe to
+    call with any params or response dict.
+
+    :param params: the params to redact
+    """
+    if not isinstance(params, dict):
+        return params
+
+    redacted = {}
+    for key, value in params.items():
+        if isinstance(value, dict):
+            redacted[key] = redact_params(value)
+        elif isinstance(value, list):
+            redacted[key] = [
+                redact_params(item) if isinstance(item, dict) else item
+                for item in value
+            ]
+        elif key in SENSITIVE_PARAMS and isinstance(value, str):
+            redacted[key] = mask_secret(value)
+        else:
+            redacted[key] = value
+    return redacted
+
 
 class QobuzSpoofer:
     """Spoofs the information required to stream tracks from Qobuz."""
@@ -193,14 +240,18 @@ class QobuzClient(Client):
                 "app_id": str(c.app_id),
             }
 
-        logger.debug("Request params %s", params)
+        logger.debug("Request params %s", redact_params(params))
         status, resp = await self._api_request("user/login", params)
-        logger.debug("Login resp: %s", resp)
+        logger.debug("Login resp: %s", redact_params(resp))
 
         if status == 401:
-            raise AuthenticationError(f"Invalid credentials from params {params}")
+            raise AuthenticationError(
+                f"Invalid credentials from params {redact_params(params)}",
+            )
         elif status == 400:
-            raise InvalidAppIdError(f"Invalid app id from params {params}")
+            raise InvalidAppIdError(
+                f"Invalid app id from params {redact_params(params)}"
+            )
 
         logger.debug("Logged in to Qobuz")
 
@@ -236,7 +287,7 @@ class QobuzClient(Client):
         if media_type in extras:
             params.update({"extra": extras[media_type]})
 
-        logger.debug("request params: %s", params)
+        logger.debug("request params: %s", redact_params(params))
 
         epoint = f"{media_type}/get"
 
@@ -420,7 +471,7 @@ class QobuzClient(Client):
         )
         working_secrets = [r for r in results if r is not None]
         if len(working_secrets) == 0:
-            raise InvalidAppSecretError(secrets)
+            raise InvalidAppSecretError([mask_secret(s) for s in secrets])
 
         return working_secrets[0]
 
@@ -433,8 +484,11 @@ class QobuzClient(Client):
         quality = self.get_quality(quality)
         unix_ts = time.time()
         r_sig = f"trackgetFileUrlformat_id{quality}intentstreamtrack_id{track_id}{unix_ts}{secret}"
-        logger.debug("Raw request signature: %s", r_sig)
         r_sig_hashed = hashlib.md5(r_sig.encode("utf-8")).hexdigest()
+        logger.debug(
+            "Raw request signature: %s",
+            r_sig.replace(secret, mask_secret(secret)),
+        )
         logger.debug("Hashed request signature: %s", r_sig_hashed)
         params = {
             "request_ts": unix_ts,
@@ -450,7 +504,9 @@ class QobuzClient(Client):
         returns: status code, json parsed response
         """
         url = f"{QOBUZ_BASE_URL}/{epoint}"
-        logger.debug("api_request: endpoint=%s, params=%s", epoint, params)
+        logger.debug(
+            "api_request: endpoint=%s, params=%s", epoint, redact_params(params)
+        )
         async with self.rate_limiter:
             async with self.session.get(url, params=params) as response:
                 return response.status, await response.json()
