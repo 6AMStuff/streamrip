@@ -85,6 +85,7 @@ line-ending = "auto"
 
 [tool.commitizen]
 name = "cz_conventional_commits"
+tag_format = "v$version"
 version_provider = "uv"
 version_files = [
     "streamrip/__init__.py",
