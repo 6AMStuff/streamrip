@@ -1,10 +1,10 @@
-![streamrip logo](https://github.com/nathom/streamrip/blob/dev/demo/logo.svg?raw=true)
+![streamrip logo](https://github.com/6AMStuff/streamrip/blob/dev/demo/logo.svg?raw=true)
 
 [![Downloads](https://pepy.tech/badge/streamrip)](https://pepy.tech/project/streamrip)
 
 A scriptable stream downloader for Qobuz, Tidal, Deezer and SoundCloud.
 
-![downloading an album](https://github.com/nathom/streamrip/blob/dev/demo/download_album.png?raw=true)
+![downloading an album](https://github.com/6AMStuff/streamrip/blob/dev/demo/download_album.png?raw=true)
 
 ## Features
 
@@ -20,44 +20,21 @@ A scriptable stream downloader for Qobuz, Tidal, Deezer and SoundCloud.
 
 ## Installation
 
-First, ensure [Python](https://www.python.org/downloads/) (version 3.10 or greater) and [pip](https://pip.pypa.io/en/stable/installing/) are installed. Then install `ffmpeg`. You may choose not to install this, but some functionality will be limited.
+Requires [Python](https://www.python.org/downloads/) 3.10 or newer. Install `ffmpeg` too — it's optional, but some functionality will be limited without it.
+
+Install with pip:
 
 ```bash
-pip3 install git+https://github.com/itisFarzin/streamrip.git@dev
+pip3 install git+https://github.com/6AMStuff/streamrip.git@dev
 ```
 
-When you type
-
-```bash
-rip
-```
-
-it should show the main help page. If you have no idea what these mean, or are having other issues installing, check out the [detailed installation instructions](https://github.com/nathom/streamrip/wiki#detailed-installation-instructions).
-
-For Arch Linux users, an AUR package exists. Make sure to install required packages from the AUR before using `makepkg` or use an AUR helper to automatically resolve them.
-```
-git clone https://aur.archlinux.org/streamrip.git
-cd streamrip
-makepkg -si
-```
- or
- ```
-paru -S streamrip
-```
-
-Alternatively, for users of Homebrew, you can install streamrip through brew.
-```
-brew install streamrip
-```
-
-### Streamrip beta
-
-If you want to get access to the latest and greatest features without waiting for a new release, install
-from the `dev` branch with the following command
+Or run it without installing, using [uvx](https://docs.astral.sh/uv/guides/tools/):
 
 ```bash
-pip3 install git+https://github.com/itisFarzin/streamrip.git@dev
+uvx --from git+https://github.com/6AMStuff/streamrip.git@dev rip --help
 ```
+
+Running `rip` should show the main help page. For more options, see the [detailed installation instructions](https://github.com/6AMStuff/streamrip/wiki#detailed-installation-instructions).
 
 ## Example Usage
 
@@ -103,7 +80,7 @@ Search for playlists matching `rap` on Tidal
 rip search tidal playlist 'rap'
 ```
 
-![streamrip interactive search](https://github.com/nathom/streamrip/blob/dev/demo/playlist_search.png?raw=true)
+![streamrip interactive search](https://github.com/6AMStuff/streamrip/blob/dev/demo/playlist_search.png?raw=true)
 
 Search for *Rumours* on Tidal, and download it
 
@@ -129,11 +106,11 @@ If you're confused about anything, see the help pages. The main help pages can b
 rip url --help
 ```
 
-![example_help_page.png](https://github.com/nathom/streamrip/blob/dev/demo/example_help_page.png?raw=true)
+![example_help_page.png](https://github.com/6AMStuff/streamrip/blob/dev/demo/example_help_page.png?raw=true)
 
 ## Other information
 
-For more in-depth information about `streamrip`, see the help pages and the [wiki](https://github.com/nathom/streamrip/wiki/).
+For more in-depth information about `streamrip`, see the help pages and the [wiki](https://github.com/6AMStuff/streamrip/wiki/).
 
 ## Contributions
 

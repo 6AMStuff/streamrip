@@ -5,7 +5,8 @@ description = "A fast, all-in-one music downloader for Qobuz, Deezer, Tidal, and
 readme = "README.md"
 license = { text = "GPL-3.0-only" }
 authors = [
-  { name = "nathom", email = "nathanthomas707@gmail.com" }
+  { name = "nathom", email = "nathanthomas707@gmail.com" },
+  { name = "Farzin Kazemzadeh", email = "itisFarzin@proton.me" }
 ]
 requires-python = ">=3.10,<4.0"
 keywords = ["hi-res", "free", "music", "download"]
@@ -54,9 +55,9 @@ dev = [
 rip = "streamrip.rip:rip"
 
 [project.urls]
-Homepage = "https://github.com/nathom/streamrip"
-Repository = "https://github.com/nathom/streamrip"
-"Bug Reports" = "https://github.com/nathom/streamrip/issues"
+Homepage = "https://github.com/6AMStuff/streamrip"
+Repository = "https://github.com/6AMStuff/streamrip"
+"Bug Reports" = "https://github.com/6AMStuff/streamrip/issues"
 
 [build-system]
 requires = ["hatchling"]

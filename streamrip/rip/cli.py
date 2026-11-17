@@ -485,10 +485,10 @@ async def latest_streamrip_version(
             return version, None
 
         async with s.get(
-            "https://api.github.com/repos/nathom/streamrip/releases/latest"
+            "https://api.github.com/repos/6AMStuff/streamrip/releases/latest"
         ) as resp:
             json = await resp.json()
-        notes = json["body"]
+        notes = json.get("body") or ""
     return version, notes
 
 
