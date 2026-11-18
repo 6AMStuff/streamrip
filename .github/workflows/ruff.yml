@@ -11,6 +11,9 @@ on:
       - "pyproject.toml"
       - ".github/workflows/ruff.yml"
 
+permissions:
+  contents: read
+
 jobs:
   ruff:
     runs-on: ubuntu-latest

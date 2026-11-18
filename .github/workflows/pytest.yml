@@ -20,6 +20,9 @@ on:
       - "uv.lock"
       - ".github/workflows/pytest.yml"
 
+permissions:
+  contents: read
+
 jobs:
   test:
     runs-on: ubuntu-latest
