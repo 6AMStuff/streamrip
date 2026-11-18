@@ -20,7 +20,7 @@ A scriptable stream downloader for Qobuz, Tidal, Deezer and SoundCloud.
 
 ## Installation
 
-Requires [Python](https://www.python.org/downloads/) 3.10 or newer. Install `ffmpeg` too — it's optional, but some functionality will be limited without it.
+Requires [Python](https://www.python.org/downloads/) 3.11 or newer. Install `ffmpeg` too — it's optional, but some functionality will be limited without it.
 
 Install with pip:
 
