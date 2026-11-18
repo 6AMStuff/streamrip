@@ -108,7 +108,7 @@ def rip(
         level="INFO",
         format="%(message)s",
         datefmt="[%X]",
-        handlers=[RichHandler()],
+        handlers=[RichHandler(console=console)],
     )
     logger = logging.getLogger("streamrip")
     if verbose:
@@ -150,6 +150,8 @@ def rip(
         )
         ctx.obj["config"] = None
         return
+
+    console.quiet = not c.session.cli.text_output
 
     # set session config values to command line args
     if no_db:
