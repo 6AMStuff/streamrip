@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import Callable
+from typing import Callable, Protocol, runtime_checkable
 
 from rich.console import Group
 from rich.live import Live
@@ -16,7 +16,41 @@ from rich.text import Text
 from .console import console
 
 
-class ProgressManager:
+@dataclass(slots=True)
+class Handle:
+    update: Callable[[int], None]
+    done: Callable[[], None]
+
+    def __enter__(self):
+        return self.update
+
+    def __exit__(self, *_):
+        self.done()
+
+
+@runtime_checkable
+class ProgressManager(Protocol):
+    """Interface for progress bar backends.
+
+    Implement these methods and register the instance with
+    :func:`set_progress_manager` to replace the default rich progress bars.
+    ``get_callback`` must return a :class:`Handle`; its ``update`` callable is
+    passed the number of bytes (or units) downloaded and ``done`` is called
+    once the transfer finishes.
+    """
+
+    def get_callback(self, total: int, desc: str) -> Handle: ...
+
+    def add_title(self, title: str) -> None: ...
+
+    def remove_title(self, title: str) -> None: ...
+
+    def cleanup(self) -> None: ...
+
+
+class RichProgressManager:
+    """Default progress backend using ``rich``."""
+
     def __init__(self):
         self.started = False
         self.progress = Progress(
@@ -74,20 +108,25 @@ class ProgressManager:
         return self._text_cache
 
 
-@dataclass(slots=True)
-class Handle:
-    update: Callable[[int], None]
-    done: Callable[[], None]
-
-    def __enter__(self):
-        return self.update
-
-    def __exit__(self, *_):
-        self.done()
-
-
 # global instance
-_p = ProgressManager()
+_default_manager = RichProgressManager()
+_p: ProgressManager = _default_manager
+
+
+def set_progress_manager(manager: ProgressManager | None) -> None:
+    """Replace the progress bar backend.
+
+    Pass an object implementing :class:`ProgressManager` to use custom
+    progress bars (for example from a third-party integration), or ``None``
+    to restore the default rich progress bars.
+    """
+    global _p
+    _p = _default_manager if manager is None else manager
+
+
+def get_progress_manager() -> ProgressManager:
+    """Return the currently registered progress bar backend."""
+    return _p
 
 
 def get_progress_callback(enabled: bool, total: int, desc: str) -> Handle:
