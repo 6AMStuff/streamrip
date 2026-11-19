@@ -307,7 +307,7 @@ class Main:
         # Ensure all client sessions are closed
         for client in self.clients.values():
             if hasattr(client, "session"):
-                await client.session.close()
+                await client.session.aclose()
 
         # close global progress bar manager
         clear_progress()

@@ -15,13 +15,14 @@ from dataclasses import dataclass
 from typing import Any, Callable, Optional
 
 import aiofiles
-import aiohttp
+import httpx2
 import m3u8
 from Cryptodome.Cipher import AES, Blowfish
 from Cryptodome.Util import Counter
 
 from .. import converter
 from ..exceptions import NonStreamableError
+from ..utils.http_client import create_client
 
 logger = logging.getLogger("streamrip")
 
@@ -39,23 +40,18 @@ def generate_temp_path(url: str):
 async def fast_async_download(path, url, headers, callback):
     """Synchronous download with yield for every 1MB read.
 
-    Using aiofiles/aiohttp resulted in a yield to the event loop for every 1KB,
-    which made file downloads CPU-bound. This resulted in a ~10MB max total download
-    speed. This fixes the issue by only yielding to the event loop for every 1MB read.
+    Using aiofiles/httpx2 with a streaming response avoids buffering the whole
+    file in memory and yields to the event loop for every 1MB read.
     """
     chunk_size: int = 2**17  # 131 KB
     counter = 0
     yield_every = 8  # 1 MB
-    async with aiohttp.ClientSession() as session:
-        async with session.get(
-            url,
-            headers=headers,
-            allow_redirects=True,
-        ) as resp:
+    async with create_client() as session:
+        async with session.stream("GET", url, headers=headers) as resp:
             resp.raise_for_status()
 
             async with aiofiles.open(path, "wb") as file:
-                async for chunk in resp.content.iter_chunked(chunk_size):
+                async for chunk in resp.aiter_bytes(chunk_size):
                     if not chunk:
                         continue
 
@@ -70,7 +66,7 @@ async def fast_async_download(path, url, headers, callback):
 
 @dataclass(slots=True)
 class Downloadable(ABC):
-    session: aiohttp.ClientSession
+    session: httpx2.AsyncClient
     url: str
     extension: str
     source: str = "Unknown"
@@ -83,11 +79,11 @@ class Downloadable(ABC):
         if hasattr(self, "_size") and self._size is not None:
             return self._size
 
-        async with self.session.head(self.url) as response:
-            response.raise_for_status()
-            content_length = response.headers.get("Content-Length", 0)
-            self._size = int(content_length)
-            return self._size
+        response = await self.session.head(self.url)
+        response.raise_for_status()
+        content_length = response.headers.get("Content-Length", 0)
+        self._size = int(content_length)
+        return self._size
 
     @property
     def _size(self):
@@ -107,7 +103,7 @@ class BasicDownloadable(Downloadable):
 
     def __init__(
         self,
-        session: aiohttp.ClientSession,
+        session: httpx2.AsyncClient,
         url: str,
         extension: str,
         source: str | None = None,
@@ -125,7 +121,7 @@ class BasicDownloadable(Downloadable):
 class DeezerDownloadable(Downloadable):
     is_encrypted = re.compile("/m(?:obile|edia)/")
 
-    def __init__(self, session: aiohttp.ClientSession, info: dict):
+    def __init__(self, session: httpx2.AsyncClient, info: dict):
         logger.debug("Deezer info for downloadable: %s", info)
         self.session = session
         self.url = info["url"]
@@ -148,12 +144,13 @@ class DeezerDownloadable(Downloadable):
 
     async def _download(self, path: str, callback):
         # with requests.Session().get(self.url, allow_redirects=True) as resp:
-        async with self.session.get(self.url, allow_redirects=True) as resp:
+        async with self.session.stream("GET", self.url, follow_redirects=True) as resp:
             resp.raise_for_status()
             self._size = int(resp.headers.get("Content-Length", 0))
             if self._size < 20000 and not self.url.endswith(".jpg"):
                 try:
-                    info = await resp.json()
+                    await resp.aread()
+                    info = resp.json()
                     try:
                         # Usually happens with deezloader downloads
                         raise NonStreamableError(f"{info['error']} - {info['message']}")
@@ -178,7 +175,7 @@ class DeezerDownloadable(Downloadable):
                 )
 
                 buf = bytearray()
-                async for data, _ in resp.content.iter_chunks():
+                async for data in resp.aiter_bytes():
                     buf += data
                     callback(len(data))
 
@@ -231,7 +228,7 @@ class TidalDownloadable(Downloadable):
 
     def __init__(
         self,
-        session: aiohttp.ClientSession,
+        session: httpx2.AsyncClient,
         url: str | None,
         codec: str,
         encryption_key: str | None,
@@ -342,8 +339,8 @@ class SoundcloudDownloadable(Downloadable):
 
     async def _download_mp3(self, path: str, callback):
         # TODO: make progress bar reflect bytes
-        async with self.session.get(self.url) as resp:
-            content = await resp.text("utf-8")
+        resp = await self.session.get(self.url)
+        content = resp.text
 
         parsed_m3u = m3u8.loads(content)
         self._size = len(parsed_m3u.segments)
@@ -364,19 +361,16 @@ class SoundcloudDownloadable(Downloadable):
 
     async def _download_segment(self, index: int, segment_uri: str) -> tuple[int, str]:
         tmp = generate_temp_path(segment_uri)
-        async with self.session.get(segment_uri) as resp:
-            resp.raise_for_status()
-            async with aiofiles.open(tmp, "wb") as file:
-                content = await resp.content.read()
-                await file.write(content)
+        resp = await self.session.get(segment_uri)
+        resp.raise_for_status()
+        async with aiofiles.open(tmp, "wb") as file:
+            await file.write(resp.content)
         return index, tmp
 
     async def size(self) -> int:
         if self.file_type == "mp3":
-            async with self.session.get(self.url) as resp:
-                content = await resp.text("utf-8")
-
-            parsed_m3u = m3u8.loads(content)
+            resp = await self.session.get(self.url)
+            parsed_m3u = m3u8.loads(resp.text)
             self._size = len(parsed_m3u.segments)
         return await super().size()
 

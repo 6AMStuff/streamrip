@@ -39,23 +39,28 @@ def create_ssl_context(verify=True):
         return ssl.create_default_context()
 
 
-def get_aiohttp_connector_kwargs(verify_ssl=True):
-    """Get keyword arguments for aiohttp.TCPConnector with SSL settings.
+def get_httpx_verify_kwargs(verify_ssl: bool = True) -> dict:
+    """Get keyword arguments for httpx2 clients with SSL settings.
 
     Args:
         verify_ssl: Whether to verify SSL certificates
 
     Returns:
-        Dictionary of kwargs to pass to aiohttp.TCPConnector
+        Dictionary of kwargs to pass to httpx2.AsyncClient
     """
     if not verify_ssl:
-        return {"verify_ssl": False}
+        return {"verify": False}
 
-    if HAS_CERTIFI:
-        ssl_context = create_ssl_context(verify=True)
-        return {"ssl": ssl_context}
-    else:
-        return {"verify_ssl": True}
+    return {"verify": create_ssl_context(verify=True)}
+
+
+def is_certificate_error(exc: BaseException | None) -> bool:
+    """Return True if an exception chain contains an SSL certificate error."""
+    while exc is not None:
+        if isinstance(exc, ssl.CertificateError):
+            return True
+        exc = exc.__cause__ or exc.__context__
+    return False
 
 
 def print_ssl_error_help():

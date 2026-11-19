@@ -8,7 +8,7 @@ A scriptable stream downloader for Qobuz, Tidal, Deezer and SoundCloud.
 
 ## Features
 
-- Fast, concurrent downloads powered by `aiohttp`
+- Fast, concurrent downloads powered by `httpx2`
 - Downloads tracks, albums, playlists, discographies, and labels from Qobuz, Tidal, Deezer, and SoundCloud
 - Supports downloads of Spotify and Apple Music playlists through [last.fm](https://www.last.fm)
 - Automatically converts files to a preferred format

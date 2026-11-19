@@ -8,8 +8,8 @@ from functools import wraps
 from typing import Any
 
 import aiofiles
-import aiohttp
 import click
+import httpx2
 from click_help_colors import HelpColorsGroup  # type: ignore
 from rich.logging import RichHandler
 from rich.markdown import Markdown
@@ -24,7 +24,8 @@ from ..config import (
     set_user_defaults,
 )
 from ..console import console
-from ..utils.ssl_utils import get_aiohttp_connector_kwargs
+from ..utils.http_client import create_client
+from ..utils.ssl_utils import is_certificate_error
 from .main import Main
 
 
@@ -218,7 +219,9 @@ async def url(ctx, urls):
 
                     console.print(Markdown(notes))
 
-    except aiohttp.ClientConnectorCertificateError as e:
+    except httpx2.ConnectError as e:
+        if not is_certificate_error(e):
+            raise
         from ..utils.ssl_utils import print_ssl_error_help
 
         console.print(f"[red]SSL Certificate verification error: {e}[/red]")
@@ -272,7 +275,9 @@ async def file(ctx, path):
 
                 await main.resolve()
                 await main.rip()
-    except aiohttp.ClientConnectorCertificateError as e:
+    except httpx2.ConnectError as e:
+        if not is_certificate_error(e):
+            raise
         from ..utils.ssl_utils import print_ssl_error_help
 
         console.print(f"[red]SSL Certificate verification error: {e}[/red]")
@@ -474,23 +479,18 @@ async def latest_streamrip_version(
     Returns:
         A tuple of (version, release_notes)
     """
-    # Create connector with appropriate SSL settings
-    connector_kwargs = get_aiohttp_connector_kwargs(verify_ssl=verify_ssl)
-    connector = aiohttp.TCPConnector(**connector_kwargs)
-
-    async with aiohttp.ClientSession(connector=connector) as s:
-        async with s.get("https://pypi.org/pypi/streamrip/json") as resp:
-            data = await resp.json()
+    async with create_client(verify_ssl=verify_ssl) as s:
+        resp = await s.get("https://pypi.org/pypi/streamrip/json")
+        data = resp.json()
         version = data["info"]["version"]
 
         if version == __version__:
             return version, None
 
-        async with s.get(
+        resp = await s.get(
             "https://api.github.com/repos/6AMStuff/streamrip/releases/latest"
-        ) as resp:
-            json = await resp.json()
-        notes = json.get("body") or ""
+        )
+        notes = resp.json().get("body") or ""
     return version, notes
 
 

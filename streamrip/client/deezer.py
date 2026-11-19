@@ -27,7 +27,7 @@ class DeezerClient(Client):
         client: client from deezer py used for API requests
         logged_in: True if logged in
         config: deezer local config
-        session: aiohttp.ClientSession, used only for track downloads not API requests
+        session: httpx2.AsyncClient, used only for track downloads not API requests
 
     """
 

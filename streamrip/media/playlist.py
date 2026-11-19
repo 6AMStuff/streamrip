@@ -7,7 +7,7 @@ import re
 from contextlib import ExitStack
 from dataclasses import dataclass
 
-import aiohttp
+import httpx2
 from rich.text import Text
 
 from .. import progress
@@ -24,7 +24,7 @@ from ..metadata import (
     SearchResults,
     TrackMetadata,
 )
-from ..utils.ssl_utils import get_aiohttp_connector_kwargs
+from ..utils.http_client import create_client
 from .artwork import download_artwork
 from .media import Media, Pending
 from .track import Track
@@ -354,16 +354,14 @@ class PendingLastfmPlaylist(Pending):
                 info.append((html.unescape(titles[i]), html.unescape(titles[i + 1])))
             return info
 
-        async def fetch(session: aiohttp.ClientSession, url, **kwargs):
-            async with session.get(url, **kwargs) as resp:
-                return await resp.text("utf-8")
+        async def fetch(session: httpx2.AsyncClient, url, **kwargs):
+            resp = await session.get(url, **kwargs)
+            return resp.text
 
         # Create new session so we're not bound by rate limit
         verify_ssl = getattr(self.config.session.downloads, "verify_ssl", True)
-        connector_kwargs = get_aiohttp_connector_kwargs(verify_ssl=verify_ssl)
-        connector = aiohttp.TCPConnector(**connector_kwargs)
 
-        async with aiohttp.ClientSession(connector=connector) as session:
+        async with create_client(verify_ssl=verify_ssl) as session:
             page = await fetch(session, playlist_url)
             playlist_title_match = re_playlist_title_match.search(page)
             if playlist_title_match is None:

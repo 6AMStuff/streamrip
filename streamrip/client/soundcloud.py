@@ -242,8 +242,8 @@ class SoundcloudClient(Client):
             _params.update(params)
 
         logger.debug(f"Requesting {url} with {_params=}, {headers=}")
-        async with self.session.get(url, params=_params, headers=headers) as resp:
-            return await resp.json(), resp.status
+        resp = await self.session.get(url, params=_params, headers=headers)
+        return resp.json(), resp.status_code
 
     async def _request_body(self, url, params=None, headers=None):
         c = self.config
@@ -255,8 +255,8 @@ class SoundcloudClient(Client):
         if params is not None:
             _params.update(params)
 
-        async with self.session.get(url, params=_params, headers=headers) as resp:
-            return await resp.content.read(), resp.status
+        resp = await self.session.get(url, params=_params, headers=headers)
+        return resp.content, resp.status_code
 
     async def _announce_success(self):
         url = f"{BASE}/announcements"
@@ -265,8 +265,8 @@ class SoundcloudClient(Client):
 
     async def _refresh_tokens(self) -> tuple[str, str]:
         """Return a valid client_id, app_version pair."""
-        async with self.session.get(STOCK_URL) as resp:
-            page_text = await resp.text(encoding="utf-8")
+        resp = await self.session.get(STOCK_URL)
+        page_text = resp.text
 
         *_, client_id_url_match = re.finditer(
             r"<script\s+crossorigin\s+src=\"([^\"]+)\"",
@@ -286,8 +286,8 @@ class SoundcloudClient(Client):
             raise Exception("Could not find app version in %s" % client_id_url_match)
         app_version = app_version_match.group(1)
 
-        async with self.session.get(client_id_url) as resp:
-            page_text2 = await resp.text(encoding="utf-8")
+        resp = await self.session.get(client_id_url)
+        page_text2 = resp.text
 
         client_id_match = re.search(r'client_id:\s*"(\w+)"', page_text2)
         assert client_id_match is not None

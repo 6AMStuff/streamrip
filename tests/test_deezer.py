@@ -21,7 +21,7 @@ def deezer_client():
 
     yield client
 
-    arun(client.session.close())
+    arun(client.session.aclose())
 
 
 @pytest.fixture

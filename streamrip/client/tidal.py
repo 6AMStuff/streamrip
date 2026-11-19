@@ -6,7 +6,7 @@ import re
 import time
 from json import JSONDecodeError
 
-import aiohttp
+import httpx2
 
 from ..config import Config
 from ..exceptions import NonStreamableError
@@ -22,7 +22,7 @@ CLIENT_ID = base64.b64decode("elU0WEhWVmtjMnREUG80dA==").decode("iso-8859-1")
 CLIENT_SECRET = base64.b64decode(
     "VkpLaERGcUpQcXZzUFZOQlY2dWtYVEptd2x2YnR0UDd3bE1scmM3MnNlND0=",
 ).decode("iso-8859-1")
-AUTH = aiohttp.BasicAuth(login=CLIENT_ID, password=CLIENT_SECRET)
+AUTH = httpx2.BasicAuth(CLIENT_ID, CLIENT_SECRET)
 STREAM_URL_REGEX = re.compile(
     r"#EXT-X-STREAM-INF:BANDWIDTH=\d+,AVERAGE-BANDWIDTH=\d+,CODECS=\"(?!jpeg)[^\"]+\",RESOLUTION=\d+x\d+\n(.+)"
 )
@@ -205,12 +205,10 @@ class TidalClient(Client):
             f"videos/{video_id}/playbackinfopostpaywall", params=params
         )
         manifest = json.loads(base64.b64decode(resp["manifest"]).decode("utf-8"))
-        async with self.session.get(manifest["urls"][0]) as resp:
-            available_urls = await resp.json()
-        available_urls.encoding = "utf-8"
+        resp = await self.session.get(manifest["urls"][0])
 
         # Highest resolution is last
-        *_, last_match = STREAM_URL_REGEX.finditer(available_urls.text)
+        *_, last_match = STREAM_URL_REGEX.finditer(resp.text)
 
         return last_match.group(1)
 
@@ -225,11 +223,11 @@ class TidalClient(Client):
         :param user_id: To verify that the user is correct
         """
         headers = {"authorization": f"Bearer {token}"}  # temporary
-        async with self.session.get(
+        response = await self.session.get(
             "https://api.tidal.com/v1/sessions",
             headers=headers,
-        ) as _resp:
-            resp = await _resp.json()
+        )
+        resp = response.json()
 
         if resp.get("status", 200) != 200:
             raise Exception(f"Login failed {resp}")
@@ -329,7 +327,7 @@ class TidalClient(Client):
 
     # ---------- API Request Utilities ---------------
 
-    async def _api_post(self, url, data, auth: aiohttp.BasicAuth | None = None) -> dict:
+    async def _api_post(self, url, data, auth: httpx2.BasicAuth | None = None) -> dict:
         """Post to the Tidal API. Status not checked!
 
         :param url:
@@ -337,8 +335,8 @@ class TidalClient(Client):
         :param auth:
         """
         async with self.rate_limiter:
-            async with self.session.post(url, data=data, auth=auth) as resp:
-                return await resp.json()
+            resp = await self.session.post(url, data=data, auth=auth)
+            return resp.json()
 
     async def _api_request(self, path: str, params=None, base: str = BASE) -> dict:
         """Handle Tidal API requests.
@@ -355,9 +353,9 @@ class TidalClient(Client):
         params["limit"] = 100
 
         async with self.rate_limiter:
-            async with self.session.get(f"{base}/{path}", params=params) as resp:
-                if resp.status == 404:
-                    logger.warning("TIDAL: track not found", resp)
-                    raise NonStreamableError("TIDAL: Track not found")
-                resp.raise_for_status()
-                return await resp.json()
+            resp = await self.session.get(f"{base}/{path}", params=params)
+            if resp.status_code == 404:
+                logger.warning("TIDAL: track not found", resp)
+                raise NonStreamableError("TIDAL: Track not found")
+            resp.raise_for_status()
+            return resp.json()

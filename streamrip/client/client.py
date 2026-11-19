@@ -4,10 +4,10 @@ import contextlib
 import logging
 from abc import ABC, abstractmethod
 
-import aiohttp
 import aiolimiter
+import httpx2
 
-from ..utils.ssl_utils import get_aiohttp_connector_kwargs
+from ..utils.http_client import create_client
 from .downloadable import Downloadable
 
 logger = logging.getLogger("streamrip")
@@ -20,7 +20,7 @@ DEFAULT_USER_AGENT = (
 class Client(ABC):
     source: str
     max_quality: int
-    session: aiohttp.ClientSession
+    session: httpx2.AsyncClient
     logged_in: bool
 
     @abstractmethod
@@ -58,15 +58,8 @@ class Client(ABC):
     @staticmethod
     async def get_session(
         headers: dict | None = None, verify_ssl: bool = True
-    ) -> aiohttp.ClientSession:
-        if headers is None:
-            headers = {}
-
-        # Get connector kwargs based on SSL verification setting
-        connector_kwargs = get_aiohttp_connector_kwargs(verify_ssl=verify_ssl)
-        connector = aiohttp.TCPConnector(**connector_kwargs)
-
-        return aiohttp.ClientSession(
-            headers={"User-Agent": DEFAULT_USER_AGENT} | headers,
-            connector=connector,
+    ) -> httpx2.AsyncClient:
+        return create_client(
+            headers={"User-Agent": DEFAULT_USER_AGENT} | (headers or {}),
+            verify_ssl=verify_ssl,
         )

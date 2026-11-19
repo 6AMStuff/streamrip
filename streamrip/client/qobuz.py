@@ -7,8 +7,6 @@ import time
 from collections import OrderedDict
 from typing import List, Optional
 
-import aiohttp
-
 from ..config import Config
 from ..exceptions import (
     AuthenticationError,
@@ -113,8 +111,8 @@ class QobuzSpoofer:
 
     async def get_app_id_and_secrets(self) -> tuple[str, list[str]]:
         assert self.session is not None
-        async with self.session.get("https://play.qobuz.com/login") as req:
-            login_page = await req.text()
+        req = await self.session.get("https://play.qobuz.com/login")
+        login_page = req.text
 
         bundle_url_match = re.search(
             r'<script src="(/resources/\d+\.\d+\.\d+-[a-z]\d{3}/bundle\.js)"></script>',
@@ -123,8 +121,8 @@ class QobuzSpoofer:
         assert bundle_url_match is not None
         bundle_url = bundle_url_match.group(1)
 
-        async with self.session.get("https://play.qobuz.com" + bundle_url) as req:
-            self.bundle = await req.text()
+        req = await self.session.get("https://play.qobuz.com" + bundle_url)
+        self.bundle = req.text
 
         match = re.search(self.app_id_regex, self.bundle)
         if match is None:
@@ -173,18 +171,15 @@ class QobuzSpoofer:
         return app_id, secrets_list
 
     async def __aenter__(self):
-        from ..utils.ssl_utils import get_aiohttp_connector_kwargs
+        from ..utils.http_client import create_client
 
         # For the spoofer, always use SSL verification
-        connector_kwargs = get_aiohttp_connector_kwargs(verify_ssl=True)
-        connector = aiohttp.TCPConnector(**connector_kwargs)
-
-        self.session = aiohttp.ClientSession(connector=connector)
+        self.session = create_client(verify_ssl=True)
         return self
 
     async def __aexit__(self, *_):
         if self.session is not None:
-            await self.session.close()
+            await self.session.aclose()
         self.session = None
 
 
@@ -508,8 +503,8 @@ class QobuzClient(Client):
             "api_request: endpoint=%s, params=%s", epoint, redact_params(params)
         )
         async with self.rate_limiter:
-            async with self.session.get(url, params=params) as response:
-                return response.status, await response.json()
+            response = await self.session.get(url, params=params)
+            return response.status_code, response.json()
 
     @staticmethod
     def get_quality(quality: int):

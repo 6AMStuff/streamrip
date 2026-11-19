@@ -3,7 +3,7 @@ import logging
 import os
 import shutil
 
-import aiohttp
+import httpx2
 from PIL import Image
 
 from ..client import BasicDownloadable
@@ -25,7 +25,7 @@ def remove_artwork_tempdirs():
 
 
 async def download_artwork(
-    session: aiohttp.ClientSession,
+    session: httpx2.AsyncClient,
     folder: str,
     covers: Covers,
     config: ArtworkConfig,
@@ -46,7 +46,7 @@ async def download_artwork(
 
     Args:
     ----
-        session (aiohttp.ClientSession):
+        session (httpx2.AsyncClient):
         folder (str):
         covers (Covers):
         config (ArtworkConfig):

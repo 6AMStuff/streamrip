@@ -120,10 +120,8 @@ class QobuzInterpreterURL(URL):
         :type url: str
         :rtype: str
         """
-        async with client.session.get(url) as resp:
-            match = QobuzInterpreterURL.interpreter_artist_regex.search(
-                await resp.text(),
-            )
+        resp = await client.session.get(url)
+        match = QobuzInterpreterURL.interpreter_artist_regex.search(resp.text)
 
         if match:
             return match.group(1)
@@ -178,8 +176,8 @@ class DeezerDynamicURL(URL):
         :type url: str
         :rtype: Tuple[str, str] (media type, item id)
         """
-        async with client.session.get(url) as resp:
-            match = cls.standard_link_re.search(await resp.text())
+        resp = await client.session.get(url)
+        match = cls.standard_link_re.search(resp.text)
 
         if match:
             return match.group(1), match.group(2)

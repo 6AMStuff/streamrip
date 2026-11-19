@@ -2,32 +2,26 @@ import inspect
 import ssl
 from unittest.mock import AsyncMock, MagicMock, patch
 
+import httpx2
 import pytest
 
-from streamrip.client.client import Client
+from streamrip.client.client import DEFAULT_USER_AGENT, Client
 from streamrip.client.qobuz import QobuzSpoofer
 from streamrip.rip.cli import latest_streamrip_version, rip
 from streamrip.utils.ssl_utils import (
     create_ssl_context,
-    get_aiohttp_connector_kwargs,
+    get_httpx_verify_kwargs,
+    is_certificate_error,
     print_ssl_error_help,
 )
 
 
 @pytest.fixture
-def mock_client_session():
-    """Fixture that provides a mocked aiohttp.ClientSession."""
-    with patch("aiohttp.ClientSession") as mock_session:
-        mock_session.return_value = AsyncMock()
-        yield mock_session
-
-
-@pytest.fixture
-def mock_tcp_connector():
-    """Fixture that provides a mocked aiohttp.TCPConnector."""
-    with patch("aiohttp.TCPConnector") as mock_connector:
-        mock_connector.return_value = MagicMock()
-        yield mock_connector
+def mock_async_client():
+    """Fixture that provides a mocked httpx2.AsyncClient."""
+    with patch("httpx2.AsyncClient") as mock_client:
+        mock_client.return_value = AsyncMock()
+        yield mock_client
 
 
 @pytest.fixture
@@ -84,28 +78,38 @@ def test_create_ssl_context_with_certifi(mock_ssl_context, mock_certifi):
     mock_ssl_context.assert_called_once_with(cafile=mock_certifi.where.return_value)
 
 
-def test_get_aiohttp_connector_kwargs_with_verification(mock_ssl_context, mock_certifi):
-    """Test get_aiohttp_connector_kwargs with verification enabled with certifi."""
+def test_get_httpx_verify_kwargs_with_verification(mock_ssl_context, mock_certifi):
+    """Test get_httpx_verify_kwargs with verification enabled with certifi."""
     # Mock the create_ssl_context function to control its return value
     with patch("streamrip.utils.ssl_utils.create_ssl_context") as mock_create_ctx:
         mock_ssl_ctx = MagicMock()
         mock_create_ctx.return_value = mock_ssl_ctx
 
         # Call the function with verification enabled
-        kwargs = get_aiohttp_connector_kwargs(verify_ssl=True)
+        kwargs = get_httpx_verify_kwargs(verify_ssl=True)
 
-        # When certifi is available, it should return kwargs with ssl context
-        assert "ssl" in kwargs
-        assert kwargs["ssl"] == mock_ssl_ctx
+        # When certifi is available, it should return the SSL context
+        assert kwargs == {"verify": mock_ssl_ctx}
 
 
-def test_get_aiohttp_connector_kwargs_without_verification():
-    """Test get_aiohttp_connector_kwargs with verification disabled."""
+def test_get_httpx_verify_kwargs_without_verification():
+    """Test get_httpx_verify_kwargs with verification disabled."""
     # Call the function with verification disabled
-    kwargs = get_aiohttp_connector_kwargs(verify_ssl=False)
+    kwargs = get_httpx_verify_kwargs(verify_ssl=False)
 
-    # It should return kwargs with verify_ssl=False
-    assert kwargs == {"verify_ssl": False}
+    # It should return verify=False
+    assert kwargs == {"verify": False}
+
+
+def test_is_certificate_error():
+    """Test that SSL certificate errors are found in the exception chain."""
+    cert_error = ssl.CertificateError("bad certificate")
+    connect_error = httpx2.ConnectError("connection failed")
+    connect_error.__cause__ = cert_error
+
+    assert is_certificate_error(connect_error)
+    assert not is_certificate_error(httpx2.ConnectError("connection failed"))
+    assert not is_certificate_error(None)
 
 
 def test_client_get_session_supports_verify_ssl():
@@ -122,8 +126,8 @@ def test_client_get_session_supports_verify_ssl():
 
 
 @pytest.mark.asyncio
-async def test_client_get_session_creates_connector():
-    """Test that Client.get_session creates a session with correct parameters."""
+async def test_client_get_session_creates_client():
+    """Test that Client.get_session creates a client with correct parameters."""
     # Check if the get_session method accepts the verify_ssl parameter
     signature = inspect.signature(Client.get_session)
 
@@ -131,23 +135,19 @@ async def test_client_get_session_creates_connector():
     if "verify_ssl" not in signature.parameters:
         pytest.skip("verify_ssl parameter not implemented in Client.get_session yet")
 
-    # Patch the get_aiohttp_connector_kwargs function and the client session
-    with (
-        patch(
-            "streamrip.client.client.get_aiohttp_connector_kwargs"
-        ) as mock_get_kwargs,
-        patch("aiohttp.ClientSession") as mock_client_session,
-        patch("aiohttp.TCPConnector") as mock_connector,
-    ):
-        mock_get_kwargs.return_value = {"verify_ssl": False}
-        mock_connector.return_value = MagicMock()
-        mock_client_session.return_value = AsyncMock()
+    # The client is built by the shared factory; assert on its final kwargs.
+    with patch("httpx2.AsyncClient") as mock_async_client:
+        mock_async_client.return_value = AsyncMock()
 
         # Test with SSL verification disabled
         await Client.get_session(verify_ssl=False)
 
-        # Verify get_aiohttp_connector_kwargs was called with verify_ssl=False
-        mock_get_kwargs.assert_called_once_with(verify_ssl=False)
+        mock_async_client.assert_called_once()
+        kwargs = mock_async_client.call_args.kwargs
+        assert kwargs["headers"] == {"User-Agent": DEFAULT_USER_AGENT}
+        assert kwargs["verify"] is False
+        assert kwargs["follow_redirects"] is True
+        assert kwargs["timeout"] is not None
 
 
 def test_latest_streamrip_version_supports_verify_ssl():
@@ -167,7 +167,7 @@ def test_latest_streamrip_version_supports_verify_ssl():
 
 @pytest.mark.asyncio
 async def test_latest_streamrip_version_creates_session():
-    """Test that latest_streamrip_version creates a session with verify_ssl parameter."""
+    """Test that latest_streamrip_version creates a client with verify_ssl parameter."""
     # Check if the function accepts the verify_ssl parameter
     signature = inspect.signature(latest_streamrip_version)
 
@@ -177,40 +177,30 @@ async def test_latest_streamrip_version_creates_session():
             "verify_ssl parameter not implemented in latest_streamrip_version yet"
         )
 
-    # Patch the get_aiohttp_connector_kwargs function and related modules
-    with (
-        patch("streamrip.rip.cli.get_aiohttp_connector_kwargs") as mock_get_kwargs,
-        patch("aiohttp.ClientSession") as mock_client_session,
-        patch("aiohttp.TCPConnector") as mock_connector,
-    ):
-        mock_get_kwargs.return_value = {"verify_ssl": False}
-        mock_connector.return_value = MagicMock()
-
+    with patch("httpx2.AsyncClient") as mock_async_client:
         # Setup mock responses for API calls
-        mock_session_instance = AsyncMock()
-        mock_client_session.return_value = mock_session_instance
+        mock_client_instance = AsyncMock()
+        mock_client_instance.__aenter__.return_value = mock_client_instance
+        mock_async_client.return_value = mock_client_instance
 
-        mock_context_manager = AsyncMock()
-        mock_session_instance.get.return_value = mock_context_manager
-        mock_context_manager.__aenter__.return_value.json.return_value = {
-            "info": {"version": "1.0.0"}
-        }
+        mock_response = MagicMock()
+        mock_response.json.return_value = {"info": {"version": "1.0.0"}}
+        mock_client_instance.get.return_value = mock_response
 
         # Make sure the test doesn't actually wait
         with patch("streamrip.rip.cli.__version__", "1.0.0"):
-            # Run with SSL verification parameter
-            try:
-                await latest_streamrip_version(verify_ssl=False)
-            except Exception:
-                # We just need to ensure it doesn't raise TypeError for the verify_ssl parameter
-                pass
+            version, notes = await latest_streamrip_version(verify_ssl=False)
 
-        # Verify get_aiohttp_connector_kwargs was called with verify_ssl=False
-        mock_get_kwargs.assert_called_once_with(verify_ssl=False)
+        assert (version, notes) == ("1.0.0", None)
+        mock_async_client.assert_called_once()
+        kwargs = mock_async_client.call_args.kwargs
+        assert kwargs["verify"] is False
+        assert kwargs["follow_redirects"] is True
+        assert kwargs["timeout"] is not None
 
 
 @pytest.mark.asyncio
-async def test_qobuz_spoofer_initialization(mock_client_session):
+async def test_qobuz_spoofer_initialization(mock_async_client):
     """Test that QobuzSpoofer initialization works with available parameters."""
     # Check if QobuzSpoofer accepts verify_ssl parameter
     signature = inspect.signature(QobuzSpoofer.__init__)
@@ -218,11 +208,11 @@ async def test_qobuz_spoofer_initialization(mock_client_session):
 
     # Create instance based on available parameters
     if has_verify_ssl:
-        # Patch the get_aiohttp_connector_kwargs function for the __aenter__ method
+        # Patch the get_httpx_verify_kwargs function for the __aenter__ method
         with patch(
-            "streamrip.utils.ssl_utils.get_aiohttp_connector_kwargs"
+            "streamrip.utils.ssl_utils.get_httpx_verify_kwargs"
         ) as mock_get_kwargs:
-            mock_get_kwargs.return_value = {"verify_ssl": True}
+            mock_get_kwargs.return_value = {"verify": True}
 
             spoofer = QobuzSpoofer(verify_ssl=True)
             assert spoofer is not None
@@ -231,11 +221,11 @@ async def test_qobuz_spoofer_initialization(mock_client_session):
             with patch.object(spoofer, "session", None):
                 await spoofer.__aenter__()
 
-                # Verify get_aiohttp_connector_kwargs was called
+                # Verify get_httpx_verify_kwargs was called
                 mock_get_kwargs.assert_called_once_with(verify_ssl=True)
 
-                # Verify ClientSession was called
-                assert mock_client_session.called
+                # Verify AsyncClient was called
+                assert mock_async_client.called
 
                 await spoofer.__aexit__(None, None, None)
     else:
@@ -244,13 +234,13 @@ async def test_qobuz_spoofer_initialization(mock_client_session):
 
         with patch.object(spoofer, "session", None):
             await spoofer.__aenter__()
-            assert mock_client_session.called
+            assert mock_async_client.called
             await spoofer.__aexit__(None, None, None)
 
 
 @pytest.mark.asyncio
-async def test_lastfm_playlist_session_creation(mock_client_session):
-    """Test that PendingLastfmPlaylist creates a ClientSession."""
+async def test_lastfm_playlist_session_creation(mock_async_client):
+    """Test that PendingLastfmPlaylist creates an AsyncClient."""
     from streamrip.media.playlist import PendingLastfmPlaylist
 
     # Mock objects needed for playlist
@@ -272,9 +262,9 @@ async def test_lastfm_playlist_session_creation(mock_client_session):
     try:
         mock_config.session.downloads.verify_ssl = False
         with patch(
-            "streamrip.utils.ssl_utils.get_aiohttp_connector_kwargs"
+            "streamrip.utils.ssl_utils.get_httpx_verify_kwargs"
         ) as mock_get_kwargs:
-            mock_get_kwargs.return_value = {"verify_ssl": False}
+            mock_get_kwargs.return_value = {"verify": False}
 
             # Try to parse the playlist
             with pytest.raises(Exception):

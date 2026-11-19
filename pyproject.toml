@@ -29,12 +29,12 @@ dependencies = [
   "appdirs>=1.4.4",
   "m3u8>=0.9.0",
   "aiofiles>=0.7",
-  "aiohttp>=3.9",
   "aiolimiter>=1.1.0",
   "rich>=13.6.0",
   "click-help-colors>=0.9.2",
   "anyio>=4.12.1",
   "requests[socks]>=2.32.5",
+  "httpx2>=2.16.2",
 ]
 
 [project.optional-dependencies]
