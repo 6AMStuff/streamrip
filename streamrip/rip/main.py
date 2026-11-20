@@ -137,13 +137,23 @@ class Main:
         )
         self.pending.extend(pendings)
 
-    async def get_logged_in_client(self, source: str):
-        """Return a functioning client instance for `source`."""
+    def get_client(self, source: str) -> Client:
         client = self.clients.get(source)
         if client is None:
             raise Exception(
                 f"No client named {source} available. Only have {self.clients.keys()}",
             )
+        return client
+
+    async def get_search_client(self, source: str) -> Client:
+        """Deezer search uses the public API; other sources need a login."""
+        if source == "deezer":
+            return self.get_client(source)
+        return await self.get_logged_in_client(source)
+
+    async def get_logged_in_client(self, source: str):
+        """Return a functioning client instance for `source`."""
+        client = self.get_client(source)
         if not client.logged_in:
             prompter = get_prompter(client, self.config)
             if not prompter.has_creds():
@@ -188,7 +198,7 @@ class Main:
             )
 
     async def search_interactive(self, source: str, media_type: str, query: str):
-        client = await self.get_logged_in_client(source)
+        client = await self.get_search_client(source)
 
         with console.status(f"[bold]Searching {source}", spinner="dots"):
             pages = await client.search(media_type, query, limit=100)
@@ -240,7 +250,7 @@ class Main:
                 )
 
     async def search_take_first(self, source: str, media_type: str, query: str):
-        client = await self.get_logged_in_client(source)
+        client = await self.get_search_client(source)
         with console.status(f"[bold]Searching {source}", spinner="dots"):
             pages = await client.search(media_type, query, limit=1)
 
@@ -261,7 +271,7 @@ class Main:
         filepath: str,
         limit: int,
     ):
-        client = await self.get_logged_in_client(source)
+        client = await self.get_search_client(source)
         with console.status(f"[bold]Searching {source}", spinner="dots"):
             pages = await client.search(media_type, query, limit=limit)
 
