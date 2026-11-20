@@ -38,12 +38,11 @@ class Track(Media):
             add_title(self.meta.title)
 
     async def download(self):
-        # TODO: progress bar description
         async with global_download_semaphore(self.config.session.downloads):
             with get_progress_callback(
                 self.config.session.cli.progress_bars,
                 await self.downloadable.size(),
-                f"Track {self.meta.tracknumber}",
+                self.meta.title,
             ) as callback:
                 try:
                     await self.downloadable.download(self.download_path, callback)
@@ -60,7 +59,7 @@ class Track(Media):
             with get_progress_callback(
                 self.config.session.cli.progress_bars,
                 await self.downloadable.size(),
-                f"Track {self.meta.tracknumber} (retry)",
+                f"{self.meta.title} (retry)",
             ) as callback:
                 try:
                     await self.downloadable.download(self.download_path, callback)

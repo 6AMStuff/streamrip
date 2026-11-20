@@ -121,7 +121,7 @@ def test_custom_manager_receives_album_download_calls():
         )
     )
     track = Track(
-        SimpleNamespace(title="Track 1", tracknumber=1),
+        SimpleNamespace(title="Dreams", tracknumber=1),
         FakeDownloadable(),
         config,
         "/tmp",
@@ -139,7 +139,7 @@ def test_custom_manager_receives_album_download_calls():
 
     assert manager.calls == [
         ("add_title", "Rumours"),
-        ("get_callback", 100, "Track 1"),
+        ("get_callback", 100, "Dreams"),
         ("done", (100,)),
         ("remove_title", "Rumours"),
     ]
