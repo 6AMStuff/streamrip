@@ -1,6 +1,12 @@
 ![streamrip logo](https://github.com/6AMStuff/streamrip/blob/dev/demo/logo.svg?raw=true)
 
-[![Downloads](https://pepy.tech/badge/streamrip)](https://pepy.tech/project/streamrip)
+<p align="center">
+  <a href="https://app.codacy.com/gh/6AMStuff/streamrip?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=6AMStuff/streamrip&amp;utm_campaign=Badge_Grade"><img src="https://api.codacy.com/project/badge/Grade/9d8fde863b17449caeea8b4cc39d6004" alt="Codacy Badge" /></a>
+  <a href="https://www.python.org"><img src="https://img.shields.io/badge/python-3.11%2B-3776AB?logo=python&logoColor=white" alt="Python"></a>
+  <a href="https://github.com/astral-sh/uv"><img src="https://img.shields.io/badge/managed%20by-uv-F43F5E" alt="uv"></a>
+  <a href="https://github.com/astral-sh/ruff"><img src="https://img.shields.io/badge/lint-ruff-000000" alt="Ruff"></a>
+  <a href="https://github.com/6AMStuff/streamrip/blob/main/LICENSE"><img src="https://img.shields.io/badge/License-GPL%20v3-yellow.svg" alt="License"></a>
+</p>
 
 A scriptable stream downloader for Qobuz, Tidal, Deezer and SoundCloud.
 
