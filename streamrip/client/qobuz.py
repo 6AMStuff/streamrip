@@ -336,9 +336,8 @@ class QobuzClient(Client):
         return label_resp
 
     async def search(
-        self, media_type: str, query: str, limit: int = 0, offset: int = 500
+        self, media_type: str, query: str, limit: int = 500, offset: int = 0
     ) -> list[dict]:
-        # TODO: Add support for offset
         if media_type not in ("artist", "album", "track", "playlist"):
             raise Exception(f"{media_type} not available for search on qobuz")
 
@@ -347,7 +346,7 @@ class QobuzClient(Client):
         }
         epoint = f"{media_type}/search"
 
-        return await self._paginate(epoint, params, limit=limit)
+        return await self._paginate(epoint, params, limit=limit, offset=offset)
 
     async def get_featured(self, query, limit: int = 500) -> list[dict]:
         params = {
@@ -395,49 +394,37 @@ class QobuzClient(Client):
         self,
         epoint: str,
         params: dict,
-        limit: int = 500,
+        limit: int | None = 500,
+        offset: int = 0,
     ) -> list[dict]:
-        """Paginate search results.
+        """Paginate results, returning at most `limit` items from `offset`.
 
-        params:
-            limit: If None, all the results are yielded. Otherwise a maximum
-            of `limit` results are yielded.
-
-        Returns
-        -------
-            Generator that yields (status code, response) tuples
+        `limit=None` requests every result from `offset` onwards.
         """
-        params.update({"limit": limit})
+        params.update({"limit": limit, "offset": offset})
         status, page = await self._api_request(epoint, params)
         assert status == 200, status
         logger.debug("paginate: initial request made with status %d", status)
+
         # albums, tracks, etc.
         key = epoint.split("/")[0] + "s"
         items = page.get(key, {})
         total = items.get("total", 0)
-        if limit is not None and limit < total:
-            total = limit
+        end = total if limit is None else min(total, offset + limit)
+        logger.debug("paginate: requesting items %d..%d of %d", offset, end, total)
 
-        logger.debug("paginate: %d total items requested", total)
-
-        if total == 0:
+        if end <= offset:
             logger.debug("Nothing found from %s epoint", epoint)
             return []
 
-        limit = int(page.get(key, {}).get("limit", 500))
-        offset = int(page.get(key, {}).get("offset", 0))
+        page_size = int(items.get("limit", 500)) or limit or 500
+        params.update({"limit": page_size})
 
-        logger.debug("paginate: from response: limit=%d, offset=%d", limit, offset)
-        params.update({"limit": limit})
-
-        pages = []
+        pages = [page]
         requests = []
-        assert status == 200, status
-        pages.append(page)
-        while (offset + limit) < total:
-            offset += limit
-            params.update({"offset": offset})
-            requests.append(self._api_request(epoint, params.copy()))
+        while offset + page_size < end:
+            offset += page_size
+            requests.append(self._api_request(epoint, params | {"offset": offset}))
 
         for status, resp in await asyncio.gather(*requests):
             assert status == 200
