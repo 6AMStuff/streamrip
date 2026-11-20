@@ -91,6 +91,25 @@ def test_custom_manager_receives_title_and_cleanup_calls():
     ]
 
 
+def test_manager_is_task_local():
+    first = RecordingManager()
+    second = RecordingManager()
+
+    async def worker(manager, title):
+        set_progress_manager(manager)
+        await asyncio.sleep(0)
+        add_title(title)
+        return get_progress_manager()
+
+    async def run():
+        return await asyncio.gather(worker(first, "first"), worker(second, "second"))
+
+    managers = asyncio.run(run())
+    assert managers == [first, second]
+    assert first.calls == [("add_title", "first")]
+    assert second.calls == [("add_title", "second")]
+
+
 def test_none_restores_default_manager():
     set_progress_manager(RecordingManager())
     assert isinstance(get_progress_manager(), RecordingManager)

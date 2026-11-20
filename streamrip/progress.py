@@ -1,3 +1,4 @@
+from contextvars import ContextVar
 from dataclasses import dataclass
 from typing import Callable, Protocol, runtime_checkable
 
@@ -33,7 +34,8 @@ class ProgressManager(Protocol):
     """Interface for progress bar backends.
 
     Implement these methods and register the instance with
-    :func:`set_progress_manager` to replace the default rich progress bars.
+    :func:`set_progress_manager` to replace the default rich progress bars
+    in the current task and its children.
     ``get_callback`` must return a :class:`Handle`; its ``update`` callable is
     passed the number of bytes (or units) downloaded and ``done`` is called
     once the transfer finishes.
@@ -108,44 +110,42 @@ class RichProgressManager:
         return self._text_cache
 
 
-# global instance
+# default backend; each task may override it for itself and its children
 _default_manager = RichProgressManager()
-_p: ProgressManager = _default_manager
+_current_manager: ContextVar[ProgressManager] = ContextVar(
+    "streamrip_progress_manager", default=_default_manager
+)
 
 
 def set_progress_manager(manager: ProgressManager | None) -> None:
-    """Replace the progress bar backend.
+    """Replace the progress bar backend for the current task.
 
     Pass an object implementing :class:`ProgressManager` to use custom
     progress bars (for example from a third-party integration), or ``None``
-    to restore the default rich progress bars.
+    to restore the default rich progress bars. Child tasks inherit the
+    selected backend.
     """
-    global _p
-    _p = _default_manager if manager is None else manager
+    _current_manager.set(_default_manager if manager is None else manager)
 
 
 def get_progress_manager() -> ProgressManager:
-    """Return the currently registered progress bar backend."""
-    return _p
+    """Return the backend active in the current task."""
+    return _current_manager.get()
 
 
 def get_progress_callback(enabled: bool, total: int, desc: str) -> Handle:
-    global _p
     if not enabled:
         return Handle(lambda _: None, lambda: None)
-    return _p.get_callback(total, desc)
+    return _current_manager.get().get_callback(total, desc)
 
 
 def add_title(title: str):
-    global _p
-    _p.add_title(title)
+    _current_manager.get().add_title(title)
 
 
 def remove_title(title: str):
-    global _p
-    _p.remove_title(title)
+    _current_manager.get().remove_title(title)
 
 
 def clear_progress():
-    global _p
-    _p.cleanup()
+    _current_manager.get().cleanup()
